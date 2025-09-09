@@ -1,0 +1,9 @@
+{
+	"dependencies": {
+		"reflect-metadata": "^0.2.2",
+		"ts-morph": "^27.0.0"
+	},
+	"devDependencies": {
+		"@types/node": "^24.3.1"
+	}
+}
