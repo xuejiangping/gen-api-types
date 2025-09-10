@@ -1,8 +1,9 @@
 // scripts/generate-api-types.ts
 import * as path from 'path';
-import { Project } from 'ts-morph';
+import { Decorator, Project } from 'ts-morph';
 import { parseArgs } from 'util';
 import { DECO_NAME } from '../constant';
+import { GenTypeOptions } from '../decotators';
 import { TypeTransformer } from '../transformer';
 
 
@@ -51,10 +52,11 @@ const _arg = parseArgs({
 })
 const { positionals, values: { project_root, output_file, output_dir, deco_name, ts_config_path } } = _arg
 if (positionals.length == 0) throw new Error('no api dirs')
-const sourceFilesGlob = positionals.map(apiDir => `${apiDir}/**/*.ts`)
+const sourceFilesGlob = positionals.map(apiDir => path.normalize(`${apiDir}/**/*.ts`))
 
 console.log('arg', _arg)
-debugger
+console.log('sourceFilesGlob', sourceFilesGlob)
+// debugger
 
 type ApiMethodInfo = {
   className: string,
@@ -63,6 +65,20 @@ type ApiMethodInfo = {
   modulePath: string,
   args: any[],
   typeName: string,
+}
+
+function parserDecoArgs(deco: Decorator): GenTypeOptions {
+
+  try {
+    const optionStr = deco.getArguments()[0]?.getText()
+    if (!optionStr) return {}
+    const option = eval(`(()=>(${optionStr}))()`)
+    if (typeof option === 'object') return option
+    else return {}
+  } catch (error) {
+    return {}
+  }
+
 }
 function getApiMethodsInfo() {
   console.log('sourceFilesGlob', sourceFilesGlob)
@@ -83,11 +99,12 @@ function getApiMethodsInfo() {
         // debugger
 
         if (deco) {
+          debugger
+
           const className = classDeclaration.getName()!;
           const methodName = method.getName();
           const fullMethodName = `${className}.${methodName}`;
-          const typeName = `Response_${className}_${methodName}`;
-          const args: any[] = []
+          const { args = [], typeName = `Response_${className}_${methodName}` } = parserDecoArgs(deco)
           apiMethodsInfo.push({
             className, methodName, fullMethodName, modulePath: sourceFile.getFilePath(),
             typeName, args
@@ -118,10 +135,9 @@ async function excuteApiMethods(apiMethodsInfo: ApiMethodInfo[]) {
     if (apiMethod && typeof apiMethod === 'function') {
       try {
         console.log(`🔍 Calling ${fullMethodName} with args:`, args);
-        const val = apiMethod.apply(apiModule, [])
-        if (val instanceof Promise) {
-          const data = await val
-
+        const result = apiMethod.apply(apiModule, args)
+        if (result instanceof Promise) {
+          const data = await result
           console.log(`${fullMethodName} result:`)
           return { data, typeName }
         }
@@ -139,7 +155,7 @@ async function excuteApiMethods(apiMethodsInfo: ApiMethodInfo[]) {
 
 function createDeclarationFile(excutedResultList: Awaited<ReturnType<typeof excuteApiMethods>>) {
   const out_put_target = path.resolve(output_dir, output_file)
-  console.log('out_put_target', out_put_target)
+  // console.log('out_put_target', out_put_target)
   const ttf = new TypeTransformer({ filePath: out_put_target })
   const tasks = excutedResultList.map(item => {
     return ttf.transform(item?.data, item?.typeName!)
@@ -152,11 +168,11 @@ async function main() {
     console.log('🚀 开始生成API类型...');
     const apiMethodsInfo = getApiMethodsInfo();
     const resultList = await excuteApiMethods(apiMethodsInfo);
-    createDeclarationFile(resultList)
+    await createDeclarationFile(resultList)
     console.log('✅ API类型生成完成');
 
   } catch (error) {
-    console.error('❌ API类型生成出错', error)
+    console.error('❌ 出错了', error)
   }
 
 }

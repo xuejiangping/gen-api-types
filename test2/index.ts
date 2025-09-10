@@ -4,11 +4,13 @@
 
 
 import { gen_type } from "../src";
+import { testHello } from "../src/utils";
 
 
 const asleep = (t = 1000) => new Promise(r => setTimeout(r, t))
 const year = 2025
 export class UserApi {
+  @gen_type({ typeName: "XXXJP", args: [2010, 2045] })
 
   static getUser(year: number) {
     return fetch(`http://localhost:8081/goviewTestData?year=${year}`).then(r => r.json()) as any
@@ -18,7 +20,8 @@ export class UserApi {
   static async getList() {
 
     return asleep(1000).then(() => {
-      return ({ name: "zs" })
+      // return ({ name: "zs" })
+      return testHello()
     })
   }
 
