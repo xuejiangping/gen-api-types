@@ -4,13 +4,18 @@
 
 
 import { gen_type } from "../src";
+import { GenApi } from "../src/decotators";
 
 
 const asleep = (t = 1000) => new Promise(r => setTimeout(r, t))
 const year = 2025
+@GenApi()
+/**
+ * @gen_test
+ */
 export class UserApi {
 
-  @gen_type({ args: [2015], typeName: 'AAAA' })
+  @gen_type({ args: [2027] })
   static getUser(year: number) {
     return fetch(`http://localhost:8081/goviewTestData?year=${year}`).then(r => r.json()) as any
   }
@@ -29,8 +34,10 @@ export class UserApi {
   }
 }
 
-// UserApi.getWeather().then((r) => {
-//   // console.log('r', r)
-//   r.data.forecast[0]
+
+
+UserApi.getWeather().then(r => {
+  r
+})
 
 

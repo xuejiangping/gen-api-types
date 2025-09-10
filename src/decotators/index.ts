@@ -1,4 +1,4 @@
-import 'reflect-metadata';
+// import 'reflect-metadata';
 
 // 定义一个唯一的metadata key
 
@@ -17,5 +17,12 @@ export function gen_type({ args = [], typeName }: GenTypeOptions = {}) {
     //   target,
     //   propertyKey
     // );
+  };
+}
+
+
+
+export function GenApi() {
+  return function <T>(target: T) {
   };
 }

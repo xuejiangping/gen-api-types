@@ -1,8 +1,9 @@
 // scripts/generate-api-types.ts
 import * as path from 'path';
 import { Decorator, Project } from 'ts-morph';
+import { pathToFileURL } from 'url';
 import { parseArgs } from 'util';
-import { DECO_NAME } from '../constant';
+import { C_DECO_NAME, M_DECO_NAME } from '../constant';
 import { GenTypeOptions } from '../decotators';
 import { TypeTransformer } from '../transformer';
 
@@ -33,11 +34,6 @@ const _arg = parseArgs({
       short: 'O',
       default: OUTPUT_FILE,
     },
-    deco_name: {
-      type: 'string',
-      short: 'd',
-      default: DECO_NAME,
-    },
     project_root: {
       type: 'string',
       short: 'r',
@@ -50,12 +46,18 @@ const _arg = parseArgs({
     }
   }
 })
-const { positionals, values: { project_root, output_file, output_dir, deco_name, ts_config_path } } = _arg
-if (positionals.length == 0) throw new Error('no api dirs')
+
+
+const { positionals, values: { project_root, output_file, output_dir, ts_config_path } } = _arg
+if (positionals.length == 0) {
+  console.error('❌ 错误: 必须指定 API 目录');
+  console.log('💡 用法示例: node cli.js ./api-directory');
+  process.exit(1)
+}
 const sourceFilesGlob = positionals.map(apiDir => path.normalize(`${apiDir}/**/*.ts`))
 
-console.log('arg', _arg)
-console.log('sourceFilesGlob', sourceFilesGlob)
+// console.log('arg', _arg)
+// console.log('sourceFilesGlob', sourceFilesGlob)
 // debugger
 
 type ApiMethodInfo = {
@@ -68,14 +70,15 @@ type ApiMethodInfo = {
 }
 
 function parserDecoArgs(deco: Decorator): GenTypeOptions {
-
+  const errMsg = `装饰器参数错误`
   try {
     const optionStr = deco.getArguments()[0]?.getText()
     if (!optionStr) return {}
     const option = eval(`(()=>(${optionStr}))()`)
     if (typeof option === 'object') return option
-    else return {}
+    else throw new Error(errMsg)
   } catch (error) {
+    console.warn('parserDecoArgs error', error)
     return {}
   }
 
@@ -84,50 +87,63 @@ function getApiMethodsInfo() {
   console.log('sourceFilesGlob', sourceFilesGlob)
   const apiMethodsInfo: ApiMethodInfo[] = []
   // 2. 使用ts-morph创建项目，便于解析源码
-  const project = new Project({ tsConfigFilePath: ts_config_path });
+  // const project = new Project({ tsConfigFilePath: ts_config_path });
+  const project = new Project({});
+
   project.addSourceFilesAtPaths(sourceFilesGlob);
+  // debugger
   // 3. 遍历所有源文件
   for (const sourceFile of project.getSourceFiles()) {
     const classes = sourceFile.getClasses();
     for (const classDeclaration of classes) {
+      const c_deco = classDeclaration.getDecorator(C_DECO_NAME)
+      if (!c_deco) continue
       const methods = classDeclaration.getMethods();
       for (const method of methods) {
-        // 4. 检查方法是否被我们的装饰器标记
-        const deco = method.getDecorator(deco_name)
-        // 更可靠的方式：直接从编译后的JS中提取元数据（如果需要）
-        // 这种方式更复杂，但更准确，需要编译代码后通过Reflect.getMetadata读取
-        // debugger
 
-        if (deco) {
-          debugger
+        const className = classDeclaration.getName()!;
+        const methodName = method.getName();
+        const fullMethodName = `${className}.${methodName}`;
 
-          const className = classDeclaration.getName()!;
-          const methodName = method.getName();
-          const fullMethodName = `${className}.${methodName}`;
-          const { args = [], typeName = `Response_${className}_${methodName}` } = parserDecoArgs(deco)
-          apiMethodsInfo.push({
-            className, methodName, fullMethodName, modulePath: sourceFile.getFilePath(),
-            typeName, args
-          })
-
+        if (!method.isStatic()) {
+          console.warn(`⚠️  ${fullMethodName} is not static method,only static method can be transformed`)
+          continue
         }
+        // 4. 检查方法是否被我们的装饰器标记
+        const m_deco = method.getDecorator(M_DECO_NAME)
+        if (!m_deco) continue
+
+        const { args = [], typeName = `Response_${className}_${methodName}` } = parserDecoArgs(m_deco)
+        apiMethodsInfo.push({
+          className, methodName, fullMethodName, modulePath: sourceFile.getFilePath(),
+          typeName, args
+        })
+
       }
     }
   }
   return apiMethodsInfo
 }
 
-
-
-async function excuteApiMethods(apiMethodsInfo: ApiMethodInfo[]) {
+type ExcuteApiMethodsResult = {
+  successList: { data: any, typeName: string, fullMethodName: string }[],
+  errorList: { fullMethodName: string, error: any }[]
+}
+async function excuteApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<ExcuteApiMethodsResult> {
   const apiModuleMap = new Map<string, any>();
   const taskList = apiMethodsInfo.map(async (apiMethodInfo) => {
     const { className, methodName, fullMethodName, modulePath, args, typeName } = apiMethodInfo
-    console.log(`📋 处理 ${fullMethodName}...`);
+    console.log(`📋 处理 ${fullMethodName} ...`);
     let apiModule = null
     if (apiModuleMap.has(modulePath)) apiModule = apiModuleMap.get(modulePath)
     else {
-      apiModule = await import(`file:///${modulePath}`)
+      // apiModule = await import(modulePath)
+      // debugger
+      apiModule = await import(pathToFileURL(modulePath).href)
+
+
+
+
       if (apiModule) apiModuleMap.set(modulePath, apiModule)
     }
 
@@ -138,28 +154,33 @@ async function excuteApiMethods(apiMethodsInfo: ApiMethodInfo[]) {
         const result = apiMethod.apply(apiModule, args)
         if (result instanceof Promise) {
           const data = await result
-          console.log(`${fullMethodName} result:`)
-          return { data, typeName }
-        }
+          // console.log(`${fullMethodName} result`)
+          return { data, typeName, fullMethodName }
+        } return { error: 'not Promise method', fullMethodName }
       } catch (error) {
-        console.error(`❌ ${fullMethodName} error:`, error)
+        console.error(`❌ ${fullMethodName} execute error:`, error)
+        return { error, fullMethodName }
       }
     } else {
       console.error(`❌ 无法获取 ${fullMethodName}或 非 可调用方法 `)
+      return {
+        error: `method error`, fullMethodName
+      }
     }
   })
 
   const resultList = await Promise.all(taskList)
-  return resultList.filter(item => Boolean(item))
+  return {
+    successList: resultList.filter(item => !item.error) as ExcuteApiMethodsResult['successList'],
+    errorList: resultList.filter(item => item.error) as ExcuteApiMethodsResult['errorList'],
+  }
 }
 
-function createDeclarationFile(excutedResultList: Awaited<ReturnType<typeof excuteApiMethods>>) {
+function createDeclarationFile(successList: ExcuteApiMethodsResult['successList']) {
   const out_put_target = path.resolve(output_dir, output_file)
   // console.log('out_put_target', out_put_target)
   const ttf = new TypeTransformer({ filePath: out_put_target })
-  const tasks = excutedResultList.map(item => {
-    return ttf.transform(item?.data, item?.typeName!)
-  })
+  const tasks = successList.map(item => ttf.transform(item.data, item.typeName))
   return Promise.all(tasks)
 }
 
@@ -167,9 +188,16 @@ async function main() {
   try {
     console.log('🚀 开始生成API类型...');
     const apiMethodsInfo = getApiMethodsInfo();
-    const resultList = await excuteApiMethods(apiMethodsInfo);
-    await createDeclarationFile(resultList)
-    console.log('✅ API类型生成完成');
+    const { successList, errorList } = await excuteApiMethods(apiMethodsInfo);
+
+    await createDeclarationFile(successList)
+
+    console.log('✅ API 类型生成完成');
+
+    console.table({
+      "✔️  successList": successList.map(item => item.fullMethodName).join(' '),
+      "❌ errorList": errorList.map(item => item.fullMethodName).join(' ')
+    })
 
   } catch (error) {
     console.error('❌ 出错了', error)
