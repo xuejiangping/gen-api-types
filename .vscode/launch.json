@@ -1,0 +1,38 @@
+{
+	// 使用 IntelliSense 了解相关属性。
+	// 悬停以查看现有属性的描述。
+	// 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "tsx运行当前文件",
+			"skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"],
+			"program": "${file}",
+
+			// "outFiles": ["${workspaceFolder}/**/*.js"],
+			// "console": "integratedTerminal",
+			"runtimeExecutable": "tsx",
+			"args": []
+			// "runtimeArgs": ["watch"],
+			// "preLaunchTask": "xjp: test",
+			// "postDebugTask": "xjp: test2"
+		},
+		{
+			"name": "test node",
+			"type": "node",
+			"request": "launch",
+			"runtimeArgs": ["${cwd}/dist/c.js"],
+			"args": ["1", "${file}"]
+			// "program": "${file}"
+		},
+		{
+			"name": "test python",
+			"type": "debugpy",
+			"request": "launch",
+			"program": "${cwd}/dist/d.py",
+			"redirectOutput": true
+		}
+	]
+}

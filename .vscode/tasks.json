@@ -1,0 +1,24 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "xjp: test",
+			"type": "shell",
+			"command": "echo 测试开始",
+			"detail": "echo 测试开始"
+		},
+		{
+			"label": "xjp: test2",
+			"type": "shell",
+			"command": "echo 测试结束",
+			"detail": "echo 测试结束"
+		},
+		{
+			"label": "xjp: test3",
+			"type": "shell",
+			"command": ["echo 'start ==>'", "(gc ${file})", " '<==  end'"],
+			"detail": "test3",
+			"problemMatcher": []
+		}
+	]
+}

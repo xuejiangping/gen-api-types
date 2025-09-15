@@ -1,11 +1,8 @@
 
-//// <reference path="./types.d.ts" />
 
 
 
-import { gen_type } from "../src";
-import { GenApi } from "../src/decotators";
-
+import { gen_type, GenApi } from "../src";
 
 const asleep = (t = 1000) => new Promise(r => setTimeout(r, t))
 const year = 2025
@@ -15,12 +12,13 @@ const year = 2025
  */
 export class UserApi {
 
-  @gen_type({ args: [2027] })
-  static getUser(year: number) {
-    return fetch(`http://localhost:8081/goviewTestData?year=${year}`).then(r => r.json()) as any
+
+  @gen_type({ args: [2027], typeName: "XXX" })
+  static getUser(year: number): Promise<XXX> {
+    return fetch(`http://localhost:8081/goviewTestData?year=${year}`).then(r => r.json())
   }
 
-  // @gen_type2()
+  @gen_type()
   static async getList() {
 
     return asleep(1000).then(() => {
@@ -28,16 +26,20 @@ export class UserApi {
     })
   }
 
-  @gen_type()
-  static getWeather(): Promise<Response_UserApi_getWeather> {
-    return fetch('http://t.weather.sojson.com/api/weather/city/101030100').then(r => r.json()) as any
+  @gen_type({ typeName: "Res_Weather" })
+  static getWeather(): Promise<Res_Weather> {
+    return fetch('http://t.weather.sojson.com/api/weather/city/101030100').then(r => r.json())
   }
 }
 
 
 
 UserApi.getWeather().then(r => {
-  r
+  console.log('r', r)
 })
 
+
+UserApi.getUser(2090).then(r => {
+  console.log('r', r)
+})
 

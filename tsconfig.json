@@ -1,6 +1,6 @@
 {
 	"exclude": [],
-	"include": ["src", "test", "test2/"],
+	"include": ["src", "test", "test2/", "index.d.ts"],
 	"compilerOptions": {
 		/* Visit https://aka.ms/tsconfig to read more about this file */
 

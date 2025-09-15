@@ -42,7 +42,6 @@ export class TypeTransformer {
   // 根据运行时对象生成类型定义
 
   generateTypeFromObject(val: any, typeName: string) {
-
     // 4. 添加类型别名
     this.sourceFile.addTypeAlias({
       name: typeName,
@@ -57,7 +56,3 @@ export class TypeTransformer {
   }
 
 }
-
-
-
-

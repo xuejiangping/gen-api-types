@@ -18,10 +18,7 @@ export class UserApi2 {
   }
 
 
-  @gen_type()
-  getNames() {
-    return 1231
-  }
+
   @gen_type()
   static async getList() {
 
@@ -32,8 +29,8 @@ export class UserApi2 {
     })
   }
 
-  @gen_type()
-  static getWeather(): Promise<Response_UserApi2_getWeather> {
+  @gen_type({ typeName: 'XXX' })
+  static getWeather(): Promise<XXX> {
     return fetch('http://t.weather.sojson.com/api/weather/city/101030100').then(r => r.json()) as any
   }
 }

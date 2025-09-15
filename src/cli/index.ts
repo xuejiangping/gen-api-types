@@ -8,15 +8,11 @@ import { GenTypeOptions } from '../decotators';
 import { TypeTransformer } from '../transformer';
 
 
-
-
-
 // 1. 配置
 const PROJECT_ROOT = path.resolve();
-const OUTPUT_FILE = 'index.d.ts'; // 类型输出目录
+const OUTPUT_FILE = 'index.d.ts';
 const OUTPUT_DIR = PROJECT_ROOT
 const TS_CONFIG_PATH = path.join(PROJECT_ROOT, 'tsconfig.json');
-
 
 
 
@@ -54,7 +50,7 @@ if (positionals.length == 0) {
   console.log('💡 用法示例: node cli.js ./api-directory');
   process.exit(1)
 }
-const sourceFilesGlob = positionals.map(apiDir => path.normalize(`${apiDir}/**/*.ts`))
+const sourceFilesGlob = positionals.map(dir => path.normalize(`${dir}/**/*.ts`))
 
 // console.log('arg', _arg)
 // console.log('sourceFilesGlob', sourceFilesGlob)
@@ -94,6 +90,7 @@ function getApiMethodsInfo() {
   // debugger
   // 3. 遍历所有源文件
   for (const sourceFile of project.getSourceFiles()) {
+
     const classes = sourceFile.getClasses();
     for (const classDeclaration of classes) {
       const c_deco = classDeclaration.getDecorator(C_DECO_NAME)
@@ -139,14 +136,20 @@ async function excuteApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<Excute
     else {
       // apiModule = await import(modulePath)
       // debugger
-      apiModule = await import(pathToFileURL(modulePath).href)
 
+      // apiModule = await import(pathToFileURL(modulePath).href)
+      try {
+        console.log('modulePath', modulePath)
+        apiModule = await import(pathToFileURL(modulePath).href)
 
-
-
+      } catch (error) {
+        console.log(`❌ ${modulePath} 模块加载失败`);
+        const relativeModulePath = path.relative(__dirname, modulePath)
+        console.log('relativeModulePath', relativeModulePath)
+        apiModule = await import(relativeModulePath)
+      }
       if (apiModule) apiModuleMap.set(modulePath, apiModule)
     }
-
     const apiMethod = apiModule?.[className]?.[methodName]
     if (apiMethod && typeof apiMethod === 'function') {
       try {
@@ -190,14 +193,17 @@ async function main() {
     const apiMethodsInfo = getApiMethodsInfo();
     const { successList, errorList } = await excuteApiMethods(apiMethodsInfo);
 
-    await createDeclarationFile(successList)
-
-    console.log('✅ API 类型生成完成');
-
+    console.group('请求结果：')
     console.table({
       "✔️  successList": successList.map(item => item.fullMethodName).join(' '),
       "❌ errorList": errorList.map(item => item.fullMethodName).join(' ')
     })
+    console.groupEnd()
+    await createDeclarationFile(successList)
+
+    console.log('✅ API 类型生成完成');
+
+
 
   } catch (error) {
     console.error('❌ 出错了', error)
