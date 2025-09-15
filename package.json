@@ -4,7 +4,7 @@
   "description": "",
   "main": "./src/index.ts",
   "bin": {
-    "gen-api-types-2": "src/cli/index.ts"
+    "gen-api-types": "src/cli/index.ts"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
