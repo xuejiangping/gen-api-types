@@ -9,7 +9,7 @@
 借助这个工具，我们可以通过 ts 装饰器来标记请求接口的类和方法，然后动态调用这些接口，并将接口返回的数据转换成 ts 类型文件，这样我们就可以在项目中直接使用了
 
 > 注意：
-> 该工具需要动态执行 ts 代码（动态调用项目中的接口模块），必须依赖 `tsx` 执行工具，请务必先全局安装 `tsx`，确保`tsx`命令可用。
+> 该工具需要动态执行 ts 代码（调用项目中的接口模块），必须依赖 `tsx` 执行工具，请务必先全局安装 `tsx`，确保`tsx`命令可用。
 
 #### 安装教程
 
@@ -23,10 +23,10 @@ npm install get-api-types-2 -D
 
 #### 使用说明
 
-##### 1. 使用装饰器标记接口类名和方法
+##### 1. 标记接口类名和方法
 
 ```ts
-import { gen_type_c, gen_type_m } from '../src'
+import { gen_type_c, gen_type_m } from 'get-api-types-2'
 
 @gen_type_c()
 export class TestApi {
@@ -49,7 +49,7 @@ export class TestApi {
 - `@gen_type_c`装饰器函数，用来标记接口类。因为工具会动态分析指定目录下的所有 ts 文件，标记接口类，可以帮助我们快速定位接口类
 - `@gen_type_m`装饰器函数标记需要转换的请求方法。它可以接收一个配置对象，包含两个字段。
   1.  `typeName: string` 接口返回类型名称，若不指定该字段，默认生成名称为： `Response_${类名}_${方法名}`
-  2.  `args：any[] ` 方法参数列表,工具调用请求方法时，会将参数列表传入请求方法
+  2.  `args：any[] ` 方法参数列表,工具调用请求方法时，会将参数列表传入
 
 ##### 2. 执行命令
 
@@ -99,10 +99,10 @@ sourceFilesGlob [ 'src\\**\\*.ts' ]
 
 ##### 3. 使用类型
 
-默认生成类型文件名为 index.d.ts,且没有导出
+默认生成类型文件 index.d.ts,且没有导出
 
 ```ts
-type AAAA = { name: string };
+type XXX = { name: string };
 type Response_UserApi_getWeather = {...}
 ```
 
