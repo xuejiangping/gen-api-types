@@ -1,3 +1,6 @@
+#!/usr/bin/env tsx
+
+
 // scripts/generate-api-types.ts
 import * as path from 'path';
 import { Decorator, Project } from 'ts-morph';
@@ -6,7 +9,6 @@ import { parseArgs } from 'util';
 import { C_DECO_NAME, M_DECO_NAME } from '../constant';
 import { GenTypeOptions } from '../decotators';
 import { TypeTransformer } from '../transformer';
-
 
 // 1. 配置
 const PROJECT_ROOT = path.resolve();
@@ -136,19 +138,17 @@ async function excuteApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<Excute
     else {
       // apiModule = await import(modulePath)
       // debugger
+      // console.log('modulePath', modulePath)
+      // console.log('pathToFileURL(modulePath).href', pathToFileURL(modulePath).href)
 
-      // apiModule = await import(pathToFileURL(modulePath).href)
       try {
-        console.log('modulePath', modulePath)
         apiModule = await import(pathToFileURL(modulePath).href)
-
+        console.log('apiMethod', apiModule)
+        if (apiModule) apiModuleMap.set(modulePath, apiModule)
       } catch (error) {
-        console.log(`❌ ${modulePath} 模块加载失败`);
-        const relativeModulePath = path.relative(__dirname, modulePath)
-        console.log('relativeModulePath', relativeModulePath)
-        apiModule = await import(relativeModulePath)
+        console.log('import modulePath error', error)
       }
-      if (apiModule) apiModuleMap.set(modulePath, apiModule)
+
     }
     const apiMethod = apiModule?.[className]?.[methodName]
     if (apiMethod && typeof apiMethod === 'function') {
@@ -159,7 +159,8 @@ async function excuteApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<Excute
           const data = await result
           // console.log(`${fullMethodName} result`)
           return { data, typeName, fullMethodName }
-        } return { error: 'not Promise method', fullMethodName }
+        }
+        return { error: 'not Promise method', fullMethodName }
       } catch (error) {
         console.error(`❌ ${fullMethodName} execute error:`, error)
         return { error, fullMethodName }

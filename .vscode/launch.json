@@ -7,32 +7,17 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "tsx运行当前文件",
+			"name": "开发模式测试",
 			"skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"],
-			"program": "${file}",
+			"program": "${cwd}/src/cli/index.ts",
 
 			// "outFiles": ["${workspaceFolder}/**/*.js"],
 			// "console": "integratedTerminal",
 			"runtimeExecutable": "tsx",
-			"args": []
+			"args": ["${cwd}/test"]
 			// "runtimeArgs": ["watch"],
 			// "preLaunchTask": "xjp: test",
 			// "postDebugTask": "xjp: test2"
-		},
-		{
-			"name": "test node",
-			"type": "node",
-			"request": "launch",
-			"runtimeArgs": ["${cwd}/dist/c.js"],
-			"args": ["1", "${file}"]
-			// "program": "${file}"
-		},
-		{
-			"name": "test python",
-			"type": "debugpy",
-			"request": "launch",
-			"program": "${cwd}/dist/d.py",
-			"redirectOutput": true
 		}
 	]
 }

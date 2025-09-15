@@ -13,8 +13,8 @@ const year = 2025
 export class UserApi {
 
 
-  @gen_type({ args: [2027], typeName: "XXX" })
-  static getUser(year: number): Promise<XXX> {
+  // @gen_type({ args: [2027], typeName: "XXX" })
+  static getUser(year: number) {
     return fetch(`http://localhost:8081/goviewTestData?year=${year}`).then(r => r.json())
   }
 
@@ -27,19 +27,19 @@ export class UserApi {
   }
 
   @gen_type({ typeName: "Res_Weather" })
-  static getWeather(): Promise<Res_Weather> {
+  static getWeather() {
     return fetch('http://t.weather.sojson.com/api/weather/city/101030100').then(r => r.json())
   }
 }
 
 
 
-UserApi.getWeather().then(r => {
-  console.log('r', r)
-})
+// UserApi.getWeather().then(r => {
+//   console.log('r', r)
+// })
 
 
-UserApi.getUser(2090).then(r => {
-  console.log('r', r)
-})
+// UserApi.getUser(2090).then(r => {
+//   console.log('r', r)
+// })
 
