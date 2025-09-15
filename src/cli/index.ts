@@ -5,53 +5,13 @@
 import * as path from 'path';
 import { Decorator, Project } from 'ts-morph';
 import { pathToFileURL } from 'url';
-import { parseArgs } from 'util';
+import { output_dir, output_file, positionals } from '../argv';
 import { C_DECO_NAME, M_DECO_NAME } from '../constant';
 import { GenTypeOptions } from '../decotators';
 import { TypeTransformer } from '../transformer';
 
-// 1. 配置
-const PROJECT_ROOT = path.resolve();
-const OUTPUT_FILE = 'index.d.ts';
-const OUTPUT_DIR = PROJECT_ROOT
-const TS_CONFIG_PATH = path.join(PROJECT_ROOT, 'tsconfig.json');
 
 
-
-const _arg = parseArgs({
-  allowPositionals: true,
-  args: process.argv.slice(2),
-  options: {
-    output_dir: {
-      type: 'string',
-      short: 'o',
-      default: OUTPUT_DIR,
-    },
-    output_file: {
-      type: 'string',
-      short: 'O',
-      default: OUTPUT_FILE,
-    },
-    project_root: {
-      type: 'string',
-      short: 'r',
-      default: PROJECT_ROOT,
-    },
-    ts_config_path: {
-      type: 'string',
-      short: 't',
-      default: TS_CONFIG_PATH,
-    }
-  }
-})
-
-
-const { positionals, values: { project_root, output_file, output_dir, ts_config_path } } = _arg
-if (positionals.length == 0) {
-  console.error('❌ 错误: 必须指定 API 目录');
-  console.log('💡 用法示例: node cli.js ./api-directory');
-  process.exit(1)
-}
 const sourceFilesGlob = positionals.map(dir => path.normalize(`${dir}/**/*.ts`))
 
 // console.log('arg', _arg)

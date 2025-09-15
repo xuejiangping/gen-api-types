@@ -8,7 +8,7 @@ export interface GenTypeOptions {
   typeName?: string;
 }
 
-export function gen_type({ args = [], typeName }: GenTypeOptions = {}) {
+export function gen_type_m({ args = [], typeName }: GenTypeOptions = {}) {
   return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     // 只存储元数据，不执行任何逻辑
     // Reflect.defineMetadata(
@@ -22,7 +22,7 @@ export function gen_type({ args = [], typeName }: GenTypeOptions = {}) {
 
 
 
-export function GenApi() {
+export function gen_type_c() {
   return function <T>(target: T) {
   };
 }
