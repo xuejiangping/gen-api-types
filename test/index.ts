@@ -7,9 +7,6 @@ import { gen_type_c, gen_type_m } from "../src";
 const asleep = (t = 1000) => new Promise(r => setTimeout(r, t))
 const year = 2025
 @gen_type_c()
-/**
- * @gen_test
- */
 export class UserApi {
 
 
