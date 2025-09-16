@@ -1,4 +1,4 @@
-# get-api-types-2
+# gen-api-types
 
 #### 介绍
 
@@ -17,7 +17,7 @@
 
 ```shell
 npm install tsx -g
-npm install get-api-types-2 -D
+npm install gen-api-types -D
 
 ```
 
@@ -26,7 +26,7 @@ npm install get-api-types-2 -D
 ##### 1. 标记接口类名和方法
 
 ```ts
-import { gen_type_c, gen_type_m } from 'get-api-types-2'
+import { gen_type_c, gen_type_m } from 'gen-api-types'
 
 @gen_type_c()
 export class TestApi {
@@ -54,13 +54,13 @@ export class TestApi {
 ##### 2. 执行命令
 
 ```shell
-npx gen-api-types-2  -o output_dir -O output_file_name ./api_dir1 ./api_dir2
+npx gen-api-types  -o output_dir -O output_file_name ./api_dir1 ./api_dir2
 ```
 
 参数说明：
 
 ```shell
- Usage: npx gen-api-types-2 [options] [api_dirs...]
+ Usage: npx gen-api-types [options] [api_dirs...]
 
 Options:
   -h, --help                  输出帮助信息
@@ -75,7 +75,7 @@ Options:
 ```json
 {
 	"scripts": {
-		"gen_types": "gen-api-types-2 -o output_dir -O output_file_name ./api_dir1 ./api_dir2"
+		"gen_types": "gen-api-types -o output_dir -O output_file_name ./api_dir1 ./api_dir2"
 	}
 }
 ```
