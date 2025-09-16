@@ -7,7 +7,7 @@
     "gen-api-types": "src/cli/index.ts"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
     "build": "webpack",
     "publish:patch": "npm version patch  && npm publish"
   },
@@ -28,6 +28,7 @@
   "devDependencies": {
     "@types/node": "^24.3.1",
     "ts-loader": "^9.5.4",
+    "vitest": "^3.2.4",
     "webpack": "^5.101.0",
     "webpack-cli": "^6.0.1"
   }

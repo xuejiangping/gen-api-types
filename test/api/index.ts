@@ -2,20 +2,19 @@
 
 
 
-import { gen_type_c, gen_type_m } from "../src";
+import { gen_type_c, gen_type_m } from "../../src";
 
 const asleep = (t = 1000) => new Promise(r => setTimeout(r, t))
-const year = 2025
 @gen_type_c()
-export class UserApi {
+export class SampleApi {
 
 
-  // @gen_type_m({ args: [2027], typeName: "XXX" })
+  // @gen_type_m({ args: [2027] })
   static getUser(year: number) {
     return fetch(`http://localhost:8081/goviewTestData?year=${year}`).then(r => r.json())
   }
 
-  @gen_type_m({ args: ['1000'] })
+  @gen_type_m({ args: ['1000'], typeName: "XXX" })
   static async getList(id: number) {
 
     return asleep(1000).then(() => {
@@ -23,20 +22,8 @@ export class UserApi {
     })
   }
 
-  @gen_type_m({ typeName: "Res_Weather" })
+  @gen_type_m()
   static getWeather() {
     return fetch('http://t.weather.sojson.com/api/weather/city/101030100').then(r => r.json())
   }
 }
-
-
-
-// UserApi.getWeather().then(r => {
-//   console.log('r', r)
-// })
-
-
-// UserApi.getUser(2090).then(r => {
-//   console.log('r', r)
-// })
-
