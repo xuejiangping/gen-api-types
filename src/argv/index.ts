@@ -51,8 +51,8 @@ if (help) {
   Options:
     -h, --help                  输出帮助信息
     -r, --project_root <path>   项目根目录
-    -o, --output_file <path>    输出文件
-    -d, --output_dir <path>     输出目录
+    -O, --output_file <path>    输出文件名
+    -o, --output_dir <path>     输出目录
     -t, --ts_config_path <path> tsconfig.json 文件路径
     `
   )

@@ -65,8 +65,8 @@ npx gen-api-types-2  -o output_dir -O output_file_name ./api_dir1 ./api_dir2
 Options:
   -h, --help                  输出帮助信息
   -r, --project_root <path>   项目根目录
-  -o, --output_file <path>    输出文件,默认index.d.ts
-  -d, --output_dir <path>     输出目录,默认当前根目录
+  -O, --output_file <path>    输出文件名
+  -o, --output_dir <path>     输出目录
   -t, --ts_config_path <path> tsconfig.json 文件路径
 ```
 

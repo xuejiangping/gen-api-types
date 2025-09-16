@@ -1,7 +1,6 @@
 #!/usr/bin/env tsx
 
 
-// scripts/generate-api-types.ts
 import * as path from 'path';
 import { Decorator, Project } from 'ts-morph';
 import { pathToFileURL } from 'url';
@@ -13,6 +12,7 @@ import { TypeTransformer } from '../transformer';
 
 
 const sourceFilesGlob = positionals.map(dir => path.normalize(`${dir}/**/*.ts`))
+const out_put_target = path.resolve(output_dir, output_file)
 
 // console.log('arg', _arg)
 // console.log('sourceFilesGlob', sourceFilesGlob)
@@ -141,8 +141,6 @@ async function excuteApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<Excute
 }
 
 function createDeclarationFile(successList: ExcuteApiMethodsResult['successList']) {
-  const out_put_target = path.resolve(output_dir, output_file)
-  // console.log('out_put_target', out_put_target)
   const ttf = new TypeTransformer({ filePath: out_put_target })
   const tasks = successList.map(item => ttf.transform(item.data, item.typeName))
   return Promise.all(tasks)
@@ -161,8 +159,9 @@ async function main() {
     })
     console.groupEnd()
     await createDeclarationFile(successList)
+    // console.log('out_put_target', out_put_target)
 
-    console.log('✅ API 类型生成完成');
+    console.log('✅ API 类型生成完成：', out_put_target);
 
 
 
