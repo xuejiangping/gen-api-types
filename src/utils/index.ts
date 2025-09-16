@@ -1,12 +1,8 @@
-
-export function testHello() {
-  if (Math.random() > 0.5) throw new Error('test error')
-
-  return { hello: 'hello' };
+type ResultInfoBase = { error?: any }
+export function formatResultList<T extends ResultInfoBase>(list: T[]) {
+  return list.reduce((acc, item) => {
+    if (item.error) acc.errorList.push(item)
+    else acc.successList.push(item)
+    return acc
+  }, { successList: [] as Omit<T, 'error'>[], errorList: [] as T[] })
 }
-
-let val = Array(10).fill(testHello())
-console.log('val', val)
-
-
-console.log('999', 123) 

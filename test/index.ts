@@ -15,11 +15,11 @@ export class UserApi {
     return fetch(`http://localhost:8081/goviewTestData?year=${year}`).then(r => r.json())
   }
 
-  @gen_type_m()
-  static async getList() {
+  @gen_type_m({ args: ['1000'] })
+  static async getList(id: number) {
 
     return asleep(1000).then(() => {
-      return ({ name: "zs" })
+      return ({ name: "zs", id })
     })
   }
 

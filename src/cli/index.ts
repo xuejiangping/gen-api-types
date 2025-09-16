@@ -8,6 +8,7 @@ import { output_dir, output_file, positionals } from '../argv';
 import { C_DECO_NAME, M_DECO_NAME } from '../constant';
 import { GenTypeOptions } from '../decotators';
 import { TypeTransformer } from '../transformer';
+import { formatResultList } from '../utils';
 
 
 
@@ -84,11 +85,10 @@ function getApiMethodsInfo() {
   return apiMethodsInfo
 }
 
-type ExcuteApiMethodsResult = {
-  successList: { data: any, typeName: string, fullMethodName: string }[],
-  errorList: { fullMethodName: string, error: any }[]
+type ExecuteApiMethodResult = {
+  data?: any, typeName: string, fullMethodName: string, error?: any
 }
-async function excuteApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<ExcuteApiMethodsResult> {
+async function executeApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<ExecuteApiMethodResult[]> {
   const apiModuleMap = new Map<string, any>();
   const taskList = apiMethodsInfo.map(async (apiMethodInfo) => {
     const { className, methodName, fullMethodName, modulePath, args, typeName } = apiMethodInfo
@@ -103,7 +103,7 @@ async function excuteApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<Excute
 
       try {
         apiModule = await import(pathToFileURL(modulePath).href)
-        console.log('apiMethod', apiModule)
+        // console.log('apiMethod', apiModule)
         if (apiModule) apiModuleMap.set(modulePath, apiModule)
       } catch (error) {
         console.log('import modulePath error', error)
@@ -113,53 +113,77 @@ async function excuteApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<Excute
     const apiMethod = apiModule?.[className]?.[methodName]
     if (apiMethod && typeof apiMethod === 'function') {
       try {
-        console.log(`🔍 Calling ${fullMethodName} with args:`, args);
+        // console.log(`🔍 Calling ${fullMethodName} with args:`, args);
         const result = apiMethod.apply(apiModule, args)
         if (result instanceof Promise) {
           const data = await result
           // console.log(`${fullMethodName} result`)
           return { data, typeName, fullMethodName }
         }
-        return { error: 'not Promise method', fullMethodName }
+        return { error: 'not Promise method', fullMethodName, typeName }
       } catch (error) {
         console.error(`❌ ${fullMethodName} execute error:`, error)
-        return { error, fullMethodName }
+        return { error, fullMethodName, typeName }
       }
     } else {
       console.error(`❌ 无法获取 ${fullMethodName}或 非 可调用方法 `)
       return {
-        error: `method error`, fullMethodName
+        error: `method error`, fullMethodName, typeName
       }
     }
   })
 
-  const resultList = await Promise.all(taskList)
-  return {
-    successList: resultList.filter(item => !item.error) as ExcuteApiMethodsResult['successList'],
-    errorList: resultList.filter(item => item.error) as ExcuteApiMethodsResult['errorList'],
-  }
+  return Promise.all(taskList)
+
 }
 
-function createDeclarationFile(successList: ExcuteApiMethodsResult['successList']) {
+
+function createDeclarationFile(successList: ExecuteApiMethodResult[]) {
   const ttf = new TypeTransformer({ filePath: out_put_target })
-  const tasks = successList.map(item => ttf.transform(item.data, item.typeName))
+  const tasks = successList.map(async ({ data, typeName, fullMethodName }) => {
+    try {
+      await ttf.transform(data, typeName)
+      return { fullMethodName }
+    } catch (error) {
+      console.error('transform error', error)
+      return { fullMethodName, error }
+    }
+  })
   return Promise.all(tasks)
 }
+
+
+
 
 async function main() {
   try {
     console.log('🚀 开始生成API类型...');
     const apiMethodsInfo = getApiMethodsInfo();
-    const { successList, errorList } = await excuteApiMethods(apiMethodsInfo);
 
-    console.group('请求结果：')
-    console.table({
-      "✔️  successList": successList.map(item => item.fullMethodName).join(' '),
-      "❌ errorList": errorList.map(item => item.fullMethodName).join(' ')
-    })
-    console.groupEnd()
-    await createDeclarationFile(successList)
-    // console.log('out_put_target', out_put_target)
+    const executeList = await executeApiMethods(apiMethodsInfo);
+
+    const { successList: executeSuccessList, errorList: executeErrorList } = formatResultList(executeList)
+    if (executeErrorList.length) {
+      console.group('请求结果：')
+      console.table({
+        "✔️ executeSuccessList": executeSuccessList.map(item => item.fullMethodName).join(' '),
+        "❌ executeErrorList": executeErrorList.map(item => item.fullMethodName).join(' ')
+      })
+      console.groupEnd()
+    }
+    const transformList = await createDeclarationFile(executeSuccessList)
+    const { successList: transformSuccessList, errorList: transformErrorList } = formatResultList(transformList)
+
+    if (transformErrorList.length) {
+      console.group('转换结果：')
+      console.table({
+        "✔️ transformSuccessList": transformSuccessList.map(item => item.fullMethodName).join(' '),
+        "❌ transformErrorList": transformErrorList.map(item => item.fullMethodName).join(' ')
+      })
+      console.groupEnd()
+
+    }
+
 
     console.log('✅ API 类型生成完成：', out_put_target);
 

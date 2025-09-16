@@ -14,8 +14,10 @@ function inferType(value: any): string {
     return "number";
   } else if (typeof value === "boolean") {
     return "boolean";
-  } else if (!value) {
+  } else if (value === null) {
     return "null";
+  } else if (!value) {
+    return "undefined";
   } else {
     return "any";
   }
@@ -25,9 +27,11 @@ function inferType(value: any): string {
 export class TypeTransformer {
   project: Project;
   sourceFile: SourceFile;
-  constructor({ projectOptions = {}, filePath = "types.d.ts" } = {}) {
+  isExported: boolean
+  constructor({ projectOptions = {}, filePath = "types.d.ts", isExported = false } = {}) {
     this.project = new Project(projectOptions);
     this.sourceFile = this.createSourceFile(filePath);
+    this.isExported = isExported
   }
 
   createSourceFile(filePath: string) {
@@ -45,14 +49,14 @@ export class TypeTransformer {
     // 4. 添加类型别名
     this.sourceFile.addTypeAlias({
       name: typeName,
-      // isExported: true,
+      isExported: this.isExported,
       type: inferType(val)
     });
+    // if (typeName == 'Res_Weather') throw Error('res_weather  test error')
   }
-  transform(res: any, typeName: string, isAsync = true) {
-
+  async transform(res: any, typeName: string, isAsync = true) {
     this.generateTypeFromObject(res, typeName)
-    return this.sourceFile.save();
+    await this.sourceFile.save();
   }
 
 }
