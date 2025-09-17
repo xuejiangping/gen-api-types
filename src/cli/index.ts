@@ -10,7 +10,7 @@ import { GenTypeOptions } from '../decotators';
 import { TypeTransformer } from '../transformer';
 import { formatResultList } from '../utils';
 
-
+// console.log('positionals', positionals)
 
 const sourceFilesGlob = positionals.map(dir => path.normalize(`${dir}/**/*.ts`))
 const out_put_target = path.resolve(output_dir, output_file)
@@ -50,6 +50,7 @@ function getApiMethodsInfo() {
   const project = new Project({});
 
   project.addSourceFilesAtPaths(sourceFilesGlob);
+  // console.log('project.getSourceFiles().length', project.getSourceFiles().length)
   // debugger
   // 3. 遍历所有源文件
   for (const sourceFile of project.getSourceFiles()) {
@@ -106,10 +107,12 @@ async function executeApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<Execu
         // console.log('apiMethod', apiModule)
         if (apiModule) apiModuleMap.set(modulePath, apiModule)
       } catch (error) {
-        console.log('import modulePath error', error)
+        console.log(`import ${modulePath} error \r\n`, error)
+        return { error: `module error`, fullMethodName, typeName }
       }
-
     }
+
+
     const apiMethod = apiModule?.[className]?.[methodName]
     if (apiMethod && typeof apiMethod === 'function') {
       try {
@@ -126,7 +129,7 @@ async function executeApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<Execu
         return { error, fullMethodName, typeName }
       }
     } else {
-      console.error(`❌ 无法获取 ${fullMethodName}或 非 可调用方法 `)
+      console.error(`❌ 无法获取 ${fullMethodName} 方法， 或不是可调用方法 `)
       return {
         error: `method error`, fullMethodName, typeName
       }
@@ -159,7 +162,7 @@ async function main() {
   try {
     console.log('🚀 开始生成API类型...');
     const apiMethodsInfo = getApiMethodsInfo();
-
+    if (apiMethodsInfo.length == 0) return console.warn('⚠️ 未找到需要转换的API,请检查api_dir 和 get_type装饰器标注是否正确!')
     const executeList = await executeApiMethods(apiMethodsInfo);
 
     const { successList: executeSuccessList, errorList: executeErrorList } = formatResultList(executeList)
@@ -183,12 +186,7 @@ async function main() {
       console.groupEnd()
 
     }
-
-
-    console.log('✅ API 类型生成完成：', out_put_target);
-
-
-
+    if (transformSuccessList.length) console.log('✅ API 类型生成完成：', out_put_target);
   } catch (error) {
     console.error('❌ 出错了', error)
   }

@@ -9,7 +9,7 @@ export default {
   },
   output: {
     path: path.resolve('dist'),
-    filename: 'gen_api_types.min.js',
+    filename: 'gen_api_types.cli.min.js',
     // libraryTarget: 'module',
     library: 'genApiTypes', // 库的名称（可选）
     libraryTarget: 'umd',   // 支持多种模块格式
