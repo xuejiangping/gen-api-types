@@ -1,11 +1,15 @@
 {
   "name": "gen-api-types",
   "version": "1.0.4",
-  "description": "",
+  "description": "一个自动生成请求接口返回类型的 cli 工具",
   "main": "./src/index.ts",
   "bin": {
     "gen-api-types": "src/cli/index.ts",
     "gat": "bin/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/xue6474/gen-api-types.git"
   },
   "scripts": {
     "test": "vitest",
