@@ -12,8 +12,8 @@ const args = process.argv.slice(2);
   try {
     await p_exec('tsx -v')
     try {
-      // const cli_path = path.resolve(__dirname,'../src/cli/index.ts')
-      const cli_path = path.resolve('dist/gen_api_types.cli.min.js')
+      const cli_path = path.resolve(__dirname,'../src/cli/index.ts')
+      // const cli_path = path.resolve(__dirname,'../dist/gen_api_types.cli.min.js')
 
       const cp = spawn('tsx',[cli_path,...args],{ stdio: 'inherit',shell: true })
       cp.on('error',err => console.error('执行 tsx 命令失败',err))

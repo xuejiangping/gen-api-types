@@ -38,7 +38,7 @@ export class TestApi {
 	}
 
 	@gen_type_m()
-	static getWeather(): Promise<Res_TestApi_getWeather> {
+	static getWeather(): Promise<Response__TestApi_getWeather> {
 		return fetch('http://t.weather.sojson.com/api/weather/city/101030100').then(r => r.json())
 	}
 }
