@@ -1,36 +1,112 @@
-# get-api-types
+# gen-api-types
 
-#### Description
-一个自动生成请求接口返回类型的cli工具
+#### Introduction
 
-#### Software Architecture
-Software architecture description
+🚀 A CLI tool for automatically generating request interface return types
+
+In TypeScript projects, you often need to write interface return types. However, it's troublesome to manually write them every time by referring to the API documentation. If you encounter third-party interfaces or incomplete documentation, you need to debug the interface first before writing the return types, which is quite a headache.
+
+With this tool, we can mark request interface classes and methods through TypeScript decorators, then dynamically call these interfaces and convert the returned data into TypeScript type definition files, which can be directly used in projects.
+
+> Note:
+> This tool needs to dynamically execute TypeScript code (calling interface modules in the project) and depends on the `tsx` execution tool. Please make sure to install `tsx` globally and ensure the `tsx` command is available.
 
 #### Installation
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+1. npm installation
 
-#### Instructions
+```shell
+npm install tsx -g
+npm install gen-api-types -D
+```
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+#### Usage
 
-#### Contribution
+##### 1. Mark interface class names and methods
 
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
+```ts
+import { gen_type_c, gen_type_m } from 'gen-api-types'
 
+@gen_type_c()
+export class TestApi {
+	@gen_type_m({ args: [100], typeName: 'XXX' })
+	static async getList(id: number): Promise<XXX> {
+		return asleep(1000).then(() => {
+			return { name: 'zs', id }
+		})
+	}
 
-#### Gitee Feature
+	@gen_type_m()
+	static getWeather(): Promise<Response_TestApi_getWeather> {
+		return fetch('http://t.weather.sojson.com/api/weather/city/101030100').then(r => r.json())
+	}
+}
+```
 
-1.  You can use Readme\_XXX.md to support different languages, such as Readme\_en.md, Readme\_zh.md
-2.  Gitee blog [blog.gitee.com](https://blog.gitee.com)
-3.  Explore open source project [https://gitee.com/explore](https://gitee.com/explore)
-4.  The most valuable open source project [GVP](https://gitee.com/gvp)
-5.  The manual of Gitee [https://gitee.com/help](https://gitee.com/help)
-6.  The most popular members  [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+As shown in the code above:
+
+- `@gen_type_c` decorator function is used to mark interface classes. Since the tool dynamically analyzes all ts files in the specified directory, marking interface classes helps quickly locate them.
+- `@gen_type_m` decorator function marks the request methods that need to be converted. It can accept a configuration object with two fields:
+  1. `typeName: string` Interface return type name. If not specified, the default name will be: `Response_${ClassName}_${MethodName}`
+  2. `args: any[]` Method parameter list. The tool will pass this list when calling the request method.
+
+##### 2. Execute command
+
+```shell
+npx gen-api-types -o output_dir -O output_file_name ./api_dir1 ./api_dir2
+```
+
+Parameter description:
+
+```shell
+Usage: npx gen-api-types [options] [api_dirs...]
+
+Options:
+  -h, --help                  Output help information
+  -r, --project_root <path>   Project root directory
+  -O, --output_file <path>    Output file name
+  -o, --output_dir <path>     Output directory
+  -t, --ts_config_path <path> Path to tsconfig.json file
+```
+
+You can also use it by configuring scripts in package.json:
+
+```json
+{
+	"scripts": {
+		"gen_types": "gen-api-types -o output_dir -O output_file_name ./api_dir1 ./api_dir2"
+	}
+}
+```
+
+Command output:
+
+```shell
+🚀 Start generating API types...
+sourceFilesGlob [ 'src\\**\\*.ts' ]
+📋 Processing UserApi.getList ...
+📋 Processing UserApi.getWeather ...
+Request results:
+  ┌────────────────┬──────────────────────────────────────┐
+  │ (index)        │ Values                               │
+  ├────────────────┼──────────────────────────────────────┤
+  │ ✔️ successList │ 'UserApi.getList UserApi.getWeather' │
+  │ ❌ errorList   │ ''                                   │
+  └────────────────┴──────────────────────────────────────┘
+✅ API type generation completed
+```
+
+##### 3. Using the types
+
+By default, a type definition file index.d.ts is generated without exports:
+
+```ts
+type XXX = { name: string };
+type Response_UserApi_getWeather = {...}
+```
+
+You can configure `include` in tsconfig.json to reference the file, or directly reference it at the top of the interface module file with:
+
+```ts
+/// <reference path="./index.d.ts" />
+```

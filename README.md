@@ -106,4 +106,8 @@ type XXX = { name: string };
 type Response_UserApi_getWeather = {...}
 ```
 
-可在`tsconfig.json`中配置`include`引用文件,或者直接在接口模块文件顶部通过`/// <reference path="./index.d.ts" />`引用
+可在`tsconfig.json`中配置`include`引用文件,或者直接在接口模块文件顶部通引用:
+
+```ts
+/// <reference path="./index.d.ts" />
+```
