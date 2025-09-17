@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-// 强制使用 tsx 执行当前目录下的 TypeScript 文件
-
 
 const { exec,execFile,spawn } = require('child_process');
 const path = require('path');
