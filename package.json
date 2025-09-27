@@ -1,6 +1,6 @@
 {
   "name": "gen-api-types",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "一个自动生成请求接口返回类型的 cli 小工具",
   "main": "./src/index.ts",
   "bin": {
