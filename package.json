@@ -14,7 +14,9 @@
   "scripts": {
     "test": "vitest",
     "build": "webpack",
-    "publish:patch": "npm version && git push --tags  && npm publish"
+    "publish:patch": "npm version patch && git push --tags  && npm publish",
+    "preinstall": "echo preinstall 。。。",
+    "postinstall": "echo postinstall 。。。"
   },
   "keywords": [
     "generate types",
