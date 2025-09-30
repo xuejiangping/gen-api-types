@@ -85,13 +85,13 @@ Options:
 ```shell
 🚀 开始生成API类型...
 sourceFilesGlob [ 'src\\**\\*.ts' ]
-📋 处理 UserApi.getList ...
-📋 处理 UserApi.getWeather ...
+📋 处理 TestApi.getList ...
+📋 处理 TestApi.getWeather ...
 请求结果：
   ┌────────────────┬──────────────────────────────────────┐
   │ (index)        │ Values                               │
   ├────────────────┼──────────────────────────────────────┤
-  │ ✔️ successList │ 'UserApi.getList UserApi.getWeather' │
+  │ ✔️ successList │ 'TestApi.getList TestApi.getWeather' │
   │ ❌ errorList   │ ''                                   │
   └────────────────┴──────────────────────────────────────┘
 ✅ API 类型生成完成
@@ -103,11 +103,29 @@ sourceFilesGlob [ 'src\\**\\*.ts' ]
 
 ```ts
 type XXX = { name: string };
-type Response_UserApi_getWeather = {...}
+type Response_TestApi_getWeather = {...}
 ```
 
-可在`tsconfig.json`中配置`include`引用文件,或者直接在接口模块文件顶部通引用:
+可在`tsconfig.json`中配置`include`引用文件
+
+```json
+// tsconfig.json
+{
+	"include": ["index.d.ts"]
+}
+```
+
+或者直接在接口模块文件顶部通过 reference 引用:
 
 ```ts
 /// <reference path="./index.d.ts" />
+export class TestApi {
+	@gen_type_m()
+	static getWeather(): Promise<Response_TestApi_getWeather> {
+		return fetch('http://t.weather.sojson.com/api/weather/city/101030100').then(r => r.json())
+	}
+}
+
+//此时data的类型为Response_TestApi_getWeather
+const data = await TestApi.getWeather()
 ```
