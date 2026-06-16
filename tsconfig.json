@@ -1,9 +1,9 @@
 {
 	"exclude": [],
-	"include": ["src", "test"],
+	"include": ["src", "test"], //把这些源码/声明文件加入项目
 	"compilerOptions": {
 		/* Visit https://aka.ms/tsconfig to read more about this file */
-		"types": ["node"],
+		"types": ["node"], //它主要用来控制自动引入哪些 @types 包 或类型包
 		/* Projects */
 		// "incremental": true,                              /* Save .tsbuildinfo files to allow for incremental compilation of projects. */
 		// "composite": true,                                /* Enable constraints that allow a TypeScript project to be used with project references. */

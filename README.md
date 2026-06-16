@@ -52,6 +52,10 @@ export class TestApi {
   1.  `typeName: string` 接口返回类型名称，若不指定该字段，默认生成名称为： `Response_${类名}_${方法名}`
   2.  `args：any[] ` 方法参数列表,工具调用请求方法时，会将参数列表传入
 
+> 注意：
+
+若使用装饰器时ts报错: "运行时将使用 2 个自变量调用修饰器，但修饰器需要 3 个",请将tsconfig中`compilerOptions.experimentalDecorators`设置为`true`
+
 ##### 2. 执行命令
 
 ```shell

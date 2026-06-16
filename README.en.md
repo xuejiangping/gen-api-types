@@ -51,6 +51,10 @@ As shown in the code above:
   1. `typeName: string` Interface return type name. If not specified, the default name will be: `Response_${ClassName}_${MethodName}`
   2. `args: any[]` Method parameter list. The tool will pass this list when calling the request method.
 
+> Note:
+
+If TypeScript reports the decorator error: "The runtime will invoke the decorator with 2 arguments, but the decorator expects 3", set `compilerOptions.experimentalDecorators` to `true` in tsconfig.
+
 ##### 2. Execute command
 
 ```shell

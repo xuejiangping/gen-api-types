@@ -25,7 +25,6 @@ export function gen_type_m({ args = [], typeName }: GenTypeOptions = {}) {
 
 /**
  * 标记类
- * @returns 
  */
 export function gen_type_c() {
   return function <T>(target: T) {
