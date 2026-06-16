@@ -118,12 +118,8 @@ async function executeApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<Execu
       try {
         // console.log(`🔍 Calling ${fullMethodName} with args:`, args);
         const result = apiMethod.apply(apiModule, args)
-        if (result instanceof Promise) {
-          const data = await result
-          // console.log(`${fullMethodName} result`)
-          return { data, typeName, fullMethodName }
-        }
-        return { error: 'not Promise method', fullMethodName, typeName }
+        const data = await Promise.resolve(result)
+        return { data, typeName, fullMethodName }
       } catch (error) {
         console.error(`❌ ${fullMethodName} execute error:`, error)
         return { error, fullMethodName, typeName }
