@@ -3,6 +3,10 @@
   "version": "1.0.8",
   "description": "一个自动生成请求接口返回类型的 cli 小工具",
   "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "type": "module",
   "bin": {
     "gen-api-types": "bin/index.js",
     "gat": "bin/index.js"
