@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import { parseArgs } from "util";
 
 
@@ -34,6 +34,10 @@ const _arg = parseArgs({
       short: 't',
       default: TS_CONFIG_PATH,
     },
+    isExported: {
+      type: 'boolean',
+      default: false,
+    },
     help: {
       type: 'boolean',
       short: 'h'
@@ -42,7 +46,7 @@ const _arg = parseArgs({
 })
 
 
-export const { positionals, values: { project_root, output_file, output_dir, ts_config_path, help } } = _arg
+export const { positionals, values: { project_root, output_file, output_dir, ts_config_path, isExported, help } } = _arg
 
 if (help) {
   console.log(`
@@ -54,6 +58,7 @@ if (help) {
     -O, --output_file <path>    输出文件名
     -o, --output_dir <path>     输出目录
     -t, --ts_config_path <path> tsconfig.json 文件路径
+    --isExported                生成导出的类型声明
     `
   )
   process.exit(0)

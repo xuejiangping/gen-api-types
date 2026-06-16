@@ -1,31 +1,21 @@
 #!/usr/bin/env node
 
-const { exec,execFile,spawn } = require('child_process');
+const { spawn } = require('child_process');
 const path = require('path');
-const { promisify } = require('util')
-const p_exec = promisify(exec);
+
 const args = process.argv.slice(2);
-; (async function () {
+const cliPath = path.resolve(__dirname, '../src/cli/index.ts');
+const tsxCliPath = require.resolve('tsx/cli');
 
-  try {
-    await p_exec('tsx -v')
-    try {
-      const cli_path = path.resolve(__dirname,'../src/cli/index.ts')
-      // const cli_path = path.resolve(__dirname,'../dist/gen_api_types.cli.min.js')
+const cp = spawn(process.execPath, [tsxCliPath, cliPath, ...args], {
+  stdio: 'inherit',
+});
 
-      const cp = spawn('tsx',[cli_path,...args],{ stdio: 'inherit',shell: true })
-      cp.on('error',err => console.error('执行 tsx 命令失败',err))
+cp.on('exit', code => {
+  process.exit(code ?? 1);
+});
 
-
-
-    } catch (error) {
-      // console.error('执行 tsx 命令失败',error)
-    }
-
-
-  } catch (error) {
-    console.error('请安装 tsx',error)
-  }
-
-})();
-
+cp.on('error', err => {
+  console.error('执行 gen-api-types 失败', err);
+  process.exit(1);
+});

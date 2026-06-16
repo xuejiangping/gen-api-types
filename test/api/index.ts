@@ -14,7 +14,7 @@ export class SampleApi {
     return fetch(`http://localhost:8081/goviewTestData?year=${year}`).then(r => r.json())
   }
 
-  @gen_type_m({ args: ['1000'], typeName: "XXX" })
+  @gen_type_m({ args: ['1000'], typeName: "GetListResult" })
   static async getList(id: number) {
 
     return asleep(1000).then(() => {

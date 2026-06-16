@@ -9,14 +9,13 @@ In TypeScript projects, you often need to write interface return types. However,
 With this tool, we can mark request interface classes and methods through TypeScript decorators, then dynamically call these interfaces and convert the returned data into TypeScript type definition files, which can be directly used in projects.
 
 > Note:
-> This tool needs to dynamically execute TypeScript code (calling interface modules in the project) and depends on the `tsx` execution tool. Please make sure to install `tsx` globally and ensure the `tsx` command is available.
+> This tool needs to dynamically execute TypeScript code (calling interface modules in the project), so it runs through the bundled `tsx` dependency. No global `tsx` installation is required.
 
 #### Installation
 
 1. npm installation
 
 ```shell
-npm install tsx -g
 npm install gen-api-types -D
 ```
 

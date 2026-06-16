@@ -9,14 +9,13 @@
 借助这个工具，我们可以通过 ts 装饰器来标记请求接口的类和方法，然后动态调用这些接口，并将接口返回的数据转换成 ts 类型文件，这样我们就可以在项目中直接使用了
 
 > 注意：
-> 该工具需要动态执行 ts 代码（调用项目中的接口模块），必须依赖 `tsx` 执行工具，请务必先全局安装 `tsx`，确保`tsx`命令可用。
+> 该工具需要动态执行 ts 代码（调用项目中的接口模块），因此会通过内置依赖的 `tsx` 执行工具运行，无需额外全局安装 `tsx`。
 
 #### 安装教程
 
 1.npm 安装
 
 ```shell
-npm install tsx -g
 npm install gen-api-types -D
 
 ```
@@ -68,6 +67,7 @@ Options:
   -O, --output_file <path>    输出文件名
   -o, --output_dir <path>     输出目录
   -t, --ts_config_path <path> tsconfig.json 文件路径
+  --isExported                生成导出的类型声明
 ```
 
 当然，也可以通过配置 package.json 中的 scripts 来使用
@@ -99,7 +99,7 @@ sourceFilesGlob [ 'src\\**\\*.ts' ]
 
 ##### 3. 使用类型
 
-默认生成类型文件 index.d.ts,且没有导出
+默认生成类型文件 index.d.ts，且类型声明没有导出
 
 ```ts
 type XXX = { name: string };
@@ -128,4 +128,17 @@ export class TestApi {
 
 //此时data的类型为Response_TestApi_getWeather
 const data = await TestApi.getWeather()
+```
+
+如果希望生成可导出的类型声明，可以在执行命令时添加 `--isExported`：
+
+```shell
+npx gen-api-types --isExported -o output_dir -O output_file_name ./api_dir1 ./api_dir2
+```
+
+生成结果示例：
+
+```ts
+export type XXX = { name: string };
+export type Response_TestApi_getWeather = {...}
 ```

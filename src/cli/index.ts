@@ -4,7 +4,7 @@
 import * as path from 'path';
 import { Decorator, Project } from 'ts-morph';
 import { pathToFileURL } from 'url';
-import { output_dir, output_file, positionals } from '../argv';
+import { isExported, output_dir, output_file, positionals } from '../argv';
 import { C_DECO_NAME, M_DECO_NAME } from '../constant';
 import { GenTypeOptions } from '../decotators';
 import { TypeTransformer } from '../transformer';
@@ -142,7 +142,7 @@ async function executeApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<Execu
 
 
 function createDeclarationFile(successList: ExecuteApiMethodResult[]) {
-  const ttf = new TypeTransformer({ filePath: out_put_target })
+  const ttf = new TypeTransformer({ filePath: out_put_target, isExported })
   const tasks = successList.map(async ({ data, typeName, fullMethodName }) => {
     try {
       await ttf.transform(data, typeName)

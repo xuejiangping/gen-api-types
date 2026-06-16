@@ -20,7 +20,7 @@ describe('执行命令cli测试', () => {
   it('根据api中标记的请求方法结果,生成对应的类型', async () => {
     // 执行CLI命令生成类型定义
     const { stdout, stderr } = await execAsync(
-      `tsx ./src/cli/index.ts ${api_dir_test} -o ${output_dir_test} -O ${output_fileName_test}`,
+      `node ./bin/index.js ${api_dir_test} -o ${output_dir_test} -O ${output_fileName_test}`,
       { cwd: process.cwd() }
     )
     // 检查是否有错误输出
@@ -37,6 +37,21 @@ describe('执行命令cli测试', () => {
 
     // 验证生成的类型定义包含预期的类型
     expect(typeDefinitions).toContain('Response_SampleApi_getWeather')
-    expect(typeDefinitions).toContain('XXX')
+    expect(typeDefinitions).toContain('GetListResult')
+    expect(typeDefinitions).not.toContain('export type')
+  })
+
+  it('支持生成导出的类型定义', async () => {
+    const { stderr } = await execAsync(
+      `node ./bin/index.js ${api_dir_test} -o ${output_dir_test} -O ${output_fileName_test} --isExported`,
+      { cwd: process.cwd() }
+    )
+
+    expect(stderr).toBe('')
+
+    const typeDefinitions = await fs.readFile(output_path_test, 'utf-8')
+
+    expect(typeDefinitions).toContain('export type Response_SampleApi_getWeather')
+    expect(typeDefinitions).toContain('export type GetListResult')
   })
 })

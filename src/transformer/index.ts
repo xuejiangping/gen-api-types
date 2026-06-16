@@ -6,8 +6,8 @@ function inferType(value: any): string {
     // 取第一个元素类型，假设数组元素类型一致
     return `${inferType(value[0])}[]`;
   } else if (typeof value === "object" && value !== null) {
-    const props = Object.entries(value).map(([k, v]) => `${k}: ${inferType(v)}`).join("; ");
-    return `{ ${props} }`;
+    const props = Object.entries(value).map(([k, v]) => `${k}: ${inferType(v)}`).join(";\n");
+    return `{${props}}`;
   } else if (typeof value === "string") {
     return "string";
   } else if (typeof value === "number") {
