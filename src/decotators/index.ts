@@ -7,7 +7,9 @@ export interface GenTypeOptions {
   args?: any[];
   typeName?: string;
 }
-
+/**
+ * 标记方法
+ */
 export function gen_type_m({ args = [], typeName }: GenTypeOptions = {}) {
   return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     // 只存储元数据，不执行任何逻辑
@@ -21,7 +23,10 @@ export function gen_type_m({ args = [], typeName }: GenTypeOptions = {}) {
 }
 
 
-
+/**
+ * 标记类
+ * @returns 
+ */
 export function gen_type_c() {
   return function <T>(target: T) {
   };
