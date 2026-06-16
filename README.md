@@ -105,26 +105,26 @@ sourceFilesGlob [ 'src\\**\\*.ts' ]
 
 ##### 3. 使用类型
 
-默认生成类型文件 index.d.ts，且类型声明没有导出
+默认生成类型文件 api-types.d.ts，且类型声明没有导出
 
 ```ts
 type XXX = { name: string };
 type Response_TestApi_getWeather = {...}
 ```
 
-可在`tsconfig.json`中配置`include`引用文件
+可在`tsconfig.json`中配置`include`引用
 
 ```json
 // tsconfig.json
 {
-	"include": ["index.d.ts"]
+	"include": ["api-types.d.ts"]
 }
 ```
 
 或者直接在接口模块文件顶部通过 reference 引用:
 
 ```ts
-/// <reference path="./index.d.ts" />
+/// <reference path="./api-types.d.ts" />
 export class TestApi {
 	@gen_type_m()
 	static getWeather(): Promise<Response_TestApi_getWeather> {

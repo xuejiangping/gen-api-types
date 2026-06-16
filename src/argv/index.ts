@@ -4,7 +4,7 @@ import { parseArgs } from "util";
 
 // 1. 配置
 const PROJECT_ROOT = path.resolve();
-const OUTPUT_FILE = 'index.d.ts';
+const OUTPUT_FILE = 'api-types.d.ts';
 const OUTPUT_DIR = PROJECT_ROOT
 const TS_CONFIG_PATH = path.join(PROJECT_ROOT, 'tsconfig.json');
 

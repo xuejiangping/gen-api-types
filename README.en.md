@@ -104,26 +104,26 @@ Request results:
 
 ##### 3. Using the types
 
-By default, a type definition file index.d.ts is generated, and the type declarations are not exported:
+By default, a type definition file api-types.d.ts is generated, and the type declarations are not exported:
 
 ```ts
 type XXX = { name: string };
 type Response_TestApi_getWeather = {...}
 ```
 
-You can configure `include` in tsconfig.json to reference the file:
+You can configure `include` in tsconfig.json to reference it:
 
 ```json
 // tsconfig.json
 {
-	"include": ["index.d.ts"]
+	"include": ["api-types.d.ts"]
 }
 ```
 
 Or reference it directly at the top of the interface module file:
 
 ```ts
-/// <reference path="./index.d.ts" />
+/// <reference path="./api-types.d.ts" />
 export class TestApi {
 	@gen_type_m()
 	static getWeather(): Promise<Response_TestApi_getWeather> {
