@@ -8,11 +8,22 @@ const OUTPUT_FILE = 'index.d.ts';
 const OUTPUT_DIR = PROJECT_ROOT
 const TS_CONFIG_PATH = path.join(PROJECT_ROOT, 'tsconfig.json');
 
+function normalizeArgv(args: string[]) {
+  return args.map(arg => {
+    const matched = arg.match(/^([\u2013\u2014]+)(.+)$/u)
+    if (!matched) return arg
+
+    const [, dashes, optionName] = matched
+    if (dashes.length > 1 || optionName.length > 1) return `--${optionName}`
+    return `-${optionName}`
+  })
+}
+
 
 
 const _arg = parseArgs({
   allowPositionals: true,
-  args: process.argv.slice(2),
+  args: normalizeArgv(process.argv.slice(2)),
   options: {
     output_dir: {
       type: 'string',

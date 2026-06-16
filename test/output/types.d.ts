@@ -1,6 +1,6 @@
-export type GetListResult = {name: string;
+type GetListResult = {name: string;
     id: string};
-export type Response_SampleApi_getWeather = {message: string;
+type Response_SampleApi_getWeather = {message: string;
     status: number;
     date: string;
     time: string;

@@ -54,4 +54,17 @@ describe('执行命令cli测试', () => {
     expect(typeDefinitions).toContain('export type Response_SampleApi_getWeather')
     expect(typeDefinitions).toContain('export type GetListResult')
   })
+
+  it('兼容误输入的 Unicode 长横线参数', async () => {
+    const { stdout, stderr } = await execAsync(
+      `node ./bin/index.js ${api_dir_test} -o ${output_dir_test} —O ${output_fileName_test}`,
+      { cwd: process.cwd() }
+    )
+
+    expect(stderr).toBe('')
+    expect(stdout).toContain(`sourceFilesGlob [ '${api_dir_test}/**/*.ts' ]`)
+
+    const fileExists = await fs.access(output_path_test).then(() => true).catch(() => false)
+    expect(fileExists).toBe(true)
+  })
 })
