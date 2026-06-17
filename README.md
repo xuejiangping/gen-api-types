@@ -148,3 +148,29 @@ npx gen-api-types --isExported -o output_dir -O output_file_name ./api_dir1 ./ap
 export type XXX = { name: string };
 export type Response_TestApi_getWeather = {...}
 ```
+
+#### VS Code 插件
+
+如果你在 VS Code 中使用 `gen-api-types` ，可以安装配套插件 [gen-api-types-vsce](https://github.com/xuejiangping/gen-api-types-vsce)，通过右键菜单生成 API 返回类型。
+![alt text](docs/images/image.png)
+
+插件不会内置 CLI，它会调用当前业务项目本地安装的 `gen-api-types`：
+
+安装插件后，在已标记装饰器的 `.ts` / `.tsx` 文件中右键选择 `生成 API 返回类型(gen-api-types)` 即可。插件会默认：
+
+- 将当前 TypeScript 文件所在目录作为 `api_dirs` 参数
+- 将类型文件生成到当前 TypeScript 文件同目录
+- 使用 `api-types.d.ts` 作为默认输出文件名
+- 输出文件已存在时弹出覆盖确认
+
+插件支持在 VS Code 设置中配置 CLI 参数：
+
+| 插件配置项                   | 对应 CLI 参数          | 默认行为                          |
+| ---------------------------- | ---------------------- | --------------------------------- |
+| `gen-api-types.projectRoot`  | `-r, --project_root`   | 当前 TS 文件所在 workspace 根目录 |
+| `gen-api-types.outputFile`   | `-O, --output_file`    | `api-types.d.ts`                  |
+| `gen-api-types.outputDir`    | `-o, --output_dir`     | 当前 TS 文件所在目录              |
+| `gen-api-types.tsConfigPath` | `-t, --ts_config_path` | 不传，由 CLI 使用默认值           |
+| `gen-api-types.isExported`   | `--isExported`         | `false`                           |
+
+插件本质上是对 CLI 的 VS Code 入口封装，类型分析、接口执行和类型文件生成仍由 `gen-api-types` 完成。
