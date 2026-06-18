@@ -30,6 +30,7 @@
   "files": [
     "bin",
     "src",
+    "docs",
     "tsconfig.json",
     "package.json"
   ],
