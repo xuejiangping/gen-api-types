@@ -26,6 +26,7 @@ type ApiMethodInfo = {
   modulePath: string,
   args: any[],
   typeName: string,
+  isStatic: boolean
 }
 
 function parserDecoArgs(deco: Decorator): GenTypeOptions {
@@ -61,15 +62,14 @@ function getApiMethodsInfo() {
       if (!c_deco) continue
       const methods = classDeclaration.getMethods();
       for (const method of methods) {
-
         const className = classDeclaration.getName()!;
         const methodName = method.getName();
         const fullMethodName = `${className}.${methodName}`;
 
-        if (!method.isStatic()) {
-          console.warn(`⚠️  ${fullMethodName} is not static method,only static method can be transformed`)
-          continue
-        }
+        // if (!method.isStatic()) {
+        //   console.warn(`⚠️  ${fullMethodName} is not static method,only static method can be transformed`)
+        //   continue
+        // }
         // 4. 检查方法是否被我们的装饰器标记
         const m_deco = method.getDecorator(M_DECO_NAME)
         if (!m_deco) continue
@@ -77,7 +77,7 @@ function getApiMethodsInfo() {
         const { args = [], typeName = `Response_${className}_${methodName}` } = parserDecoArgs(m_deco)
         apiMethodsInfo.push({
           className, methodName, fullMethodName, modulePath: sourceFile.getFilePath(),
-          typeName, args
+          typeName, args, isStatic: method.isStatic()
         })
 
       }
@@ -91,10 +91,13 @@ type ExecuteApiMethodResult = {
 }
 async function executeApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<ExecuteApiMethodResult[]> {
   const apiModuleMap = new Map<string, any>();
-  const taskList = apiMethodsInfo.map(async (apiMethodInfo) => {
-    const { className, methodName, fullMethodName, modulePath, args, typeName } = apiMethodInfo
+  // debugger
+  const taskList: ExecuteApiMethodResult[] = []
+  for (const apiMethodInfo of apiMethodsInfo) {
+    const { className, methodName, fullMethodName, modulePath, args, typeName, isStatic } = apiMethodInfo
     console.log(`📋 处理 ${fullMethodName} ...`);
     let apiModule = null
+    // debugger
     if (apiModuleMap.has(modulePath)) apiModule = apiModuleMap.get(modulePath)
     else {
       // apiModule = await import(modulePath)
@@ -108,31 +111,35 @@ async function executeApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<Execu
         if (apiModule) apiModuleMap.set(modulePath, apiModule)
       } catch (error) {
         console.log(`import ${modulePath} error \r\n`, error)
-        return { error: `module error`, fullMethodName, typeName }
+        taskList.push({ error: `module error`, fullMethodName, typeName })
       }
     }
 
-
-    const apiMethod = apiModule?.[className]?.[methodName]
+    const apiMethod = isStatic ?
+      apiModule?.[className][methodName]
+      : apiModule?.[className].prototype[methodName]
     if (apiMethod && typeof apiMethod === 'function') {
       try {
         // console.log(`🔍 Calling ${fullMethodName} with args:`, args);
         const result = apiMethod.apply(apiModule, args)
         const data = await Promise.resolve(result)
-        return { data, typeName, fullMethodName }
+        taskList.push({ data, typeName, fullMethodName })
       } catch (error) {
         console.error(`❌ ${fullMethodName} execute error:`, error)
-        return { error, fullMethodName, typeName }
+        taskList.push({ error, fullMethodName, typeName })
       }
     } else {
       console.error(`❌ 无法获取 ${fullMethodName} 方法， 或不是可调用方法 `)
-      return {
+      taskList.push({
         error: `method error`, fullMethodName, typeName
-      }
+      })
     }
-  })
+  }
 
-  return Promise.all(taskList)
+
+
+
+  return taskList
 
 }
 

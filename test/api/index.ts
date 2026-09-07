@@ -10,10 +10,6 @@ const asleep = (t = 1000) => new Promise(r => setTimeout(r, t))
 export class SampleApi {
 
 
-  // @gen_type_m({ args: [2027] })
-  static getUser(year: number) {
-    return fetch(`http://localhost:8081/goviewTestData?year=${year}`).then(r => r.json())
-  }
 
   @gen_type_m({ args: ['1000'], typeName: "GetListResult" })
   static async getList(id: number) {
@@ -24,7 +20,9 @@ export class SampleApi {
   }
 
   @gen_type_m()
-  static getWeather(): Promise<Response_SampleApi_getWeather> {
+  getWeather(): Promise<Response_SampleApi_getWeather> {
     return fetch('http://t.weather.sojson.com/api/weather/city/101030100').then(r => r.json())
   }
 }
+
+console.log('加载 test/api/index.ts')
