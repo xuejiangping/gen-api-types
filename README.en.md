@@ -10,8 +10,8 @@ With this tool, we can mark request interface classes and methods through TypeSc
 
 > Note:
 >
-> 1. Because this tool uses TypeScript decorators, and decorators currently (TypeScript 5.0) do not support decorating plain functions directly, APIs must be written as **API classes + static API methods**.
-> 2. This tool needs to dynamically execute TypeScript code (importing API classes and calling the marked static API methods), so it runs through the bundled `tsx` dependency. No global `tsx` installation is required.
+> 1. Because this tool uses TypeScript decorators, and decorators currently (TypeScript 5.0) do not support decorating plain functions directly, APIs must be written as **API classes + API methods**.
+> 2. This tool needs to dynamically execute TypeScript code (importing API classes and calling the marked API methods), so it runs through the bundled `tsx` dependency. No global `tsx` installation is required.
 
 #### Installation
 
@@ -165,12 +165,12 @@ After installing the extension, right-click in a `.ts` or `.tsx` file containing
 
 You can configure the CLI arguments in the VS Code settings:
 
-| Extension setting                 | CLI argument           | Default behavior                                      |
-| --------------------------------- | ---------------------- | ----------------------------------------------------- |
-| `gen-api-types.projectRoot`       | `-r, --project_root`   | Workspace root containing the current TypeScript file |
-| `gen-api-types.outputFile`        | `-O, --output_file`    | `api-types.d.ts`                                      |
-| `gen-api-types.outputDir`         | `-o, --output_dir`     | Directory containing the current TypeScript file      |
-| `gen-api-types.tsConfigPath`      | `-t, --ts_config_path` | Not passed; the CLI uses its default value             |
-| `gen-api-types.isExported`        | `--isExported`         | `false`                                               |
+| Extension setting            | CLI argument           | Default behavior                                      |
+| ---------------------------- | ---------------------- | ----------------------------------------------------- |
+| `gen-api-types.projectRoot`  | `-r, --project_root`   | Workspace root containing the current TypeScript file |
+| `gen-api-types.outputFile`   | `-O, --output_file`    | `api-types.d.ts`                                      |
+| `gen-api-types.outputDir`    | `-o, --output_dir`     | Directory containing the current TypeScript file      |
+| `gen-api-types.tsConfigPath` | `-t, --ts_config_path` | Not passed; the CLI uses its default value            |
+| `gen-api-types.isExported`   | `--isExported`         | `false`                                               |
 
 The extension is essentially a VS Code entry point for the CLI. Type analysis, API execution, and type-file generation are still handled by `gen-api-types`.
