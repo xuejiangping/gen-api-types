@@ -1,5 +1,5 @@
 import type { Plugin } from 'vite';
-import { C_DECO_NAME, M_DECO_NAME } from '../../constant/index.ts';
+import { DECO_NAME_C, DECO_NAME_M } from '../../constant/index.ts';
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -41,6 +41,6 @@ export function removeDecorators(decorators: string[]): Plugin {
 }
 
 export function removeGatDecorators() {
-  const decorators = [M_DECO_NAME, C_DECO_NAME]
+  const decorators = [DECO_NAME_M, DECO_NAME_C]
   return removeDecorators(decorators)
 }

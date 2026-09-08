@@ -2,11 +2,11 @@
 
 
 import * as path from 'path';
-import { Decorator, Project } from 'ts-morph';
+import { Project } from 'ts-morph';
 import { pathToFileURL } from 'url';
 import { isExported, output_dir, output_file, positionals } from '../argv';
-import { C_DECO_NAME, M_DECO_NAME } from '../constant';
-import { GenTypeOptions } from '../decotators';
+import { DECO_NAME_C, DECO_NAME_M } from '../constant';
+import { ExecuteApiMethodResult, executeState } from '../state';
 import { TypeTransformer } from '../transformer';
 import { formatResultList } from '../utils';
 
@@ -19,37 +19,13 @@ const out_put_target = path.resolve(output_dir, output_file)
 // console.log('sourceFilesGlob', sourceFilesGlob)
 // debugger
 
-type ApiMethodInfo = {
-  className: string,
-  methodName: string,
-  fullMethodName: string,
-  modulePath: string,
-  args: any[],
-  typeName: string,
-  isStatic: boolean
-}
 
-function parserDecoArgs(deco: Decorator): GenTypeOptions {
-  const errMsg = `装饰器参数错误`
-  try {
-    const optionStr = deco.getArguments()[0]?.getText()
-    if (!optionStr) return {}
-    const option = eval(`(()=>(${optionStr}))()`)
-    if (typeof option === 'object') return option
-    else throw new Error(errMsg)
-  } catch (error) {
-    console.warn('parserDecoArgs error', error)
-    return {}
-  }
-
-}
-function getApiMethodsInfo() {
+function getModulePathSet() {
   console.log('sourceFilesGlob', sourceFilesGlob)
-  const apiMethodsInfo: ApiMethodInfo[] = []
+  const modulePathSet: Set<string> = new Set()
   // 2. 使用ts-morph创建项目，便于解析源码
   // const project = new Project({ tsConfigFilePath: ts_config_path });
   const project = new Project({});
-
   project.addSourceFilesAtPaths(sourceFilesGlob);
   // console.log('project.getSourceFiles().length', project.getSourceFiles().length)
   // debugger
@@ -58,7 +34,7 @@ function getApiMethodsInfo() {
 
     const classes = sourceFile.getClasses();
     for (const classDeclaration of classes) {
-      const c_deco = classDeclaration.getDecorator(C_DECO_NAME)
+      const c_deco = classDeclaration.getDecorator(DECO_NAME_C)
       if (!c_deco) continue
       const methods = classDeclaration.getMethods();
       for (const method of methods) {
@@ -66,82 +42,28 @@ function getApiMethodsInfo() {
         const methodName = method.getName();
         const fullMethodName = `${className}.${methodName}`;
 
-        // if (!method.isStatic()) {
-        //   console.warn(`⚠️  ${fullMethodName} is not static method,only static method can be transformed`)
-        //   continue
-        // }
         // 4. 检查方法是否被我们的装饰器标记
-        const m_deco = method.getDecorator(M_DECO_NAME)
+        const m_deco = method.getDecorator(DECO_NAME_M)
         if (!m_deco) continue
+        executeState.emit(executeState.ADD_TASK, fullMethodName)
+        const modulePath = sourceFile.getFilePath()
+        if (!modulePathSet.has(modulePath)) modulePathSet.add(modulePath)
 
-        const { args = [], typeName = `Response_${className}_${methodName}` } = parserDecoArgs(m_deco)
-        apiMethodsInfo.push({
-          className, methodName, fullMethodName, modulePath: sourceFile.getFilePath(),
-          typeName, args, isStatic: method.isStatic()
-        })
 
       }
     }
   }
-  return apiMethodsInfo
+  return modulePathSet
 }
 
-type ExecuteApiMethodResult = {
-  data?: any, typeName: string, fullMethodName: string, error?: any
-}
-async function executeApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<ExecuteApiMethodResult[]> {
-  // 缓存apiModule
-  const apiModuleMap = new Map<string, any>();
-  // debugger
-  const taskList: ExecuteApiMethodResult[] = []
-  for (const apiMethodInfo of apiMethodsInfo) {
-    const { className, methodName, fullMethodName, modulePath, args, typeName, isStatic } = apiMethodInfo
-    console.log(`📋 处理 ${fullMethodName} ...`);
-    let apiModule = null
-    // debugger
-    if (apiModuleMap.has(modulePath)) apiModule = apiModuleMap.get(modulePath)
-    else {
-      // apiModule = await import(modulePath)
-      // debugger
-      // console.log('modulePath', modulePath)
-      // console.log('pathToFileURL(modulePath).href', pathToFileURL(modulePath).href)
 
-      try {
-        apiModule = await import(pathToFileURL(modulePath).href)
-        // console.log('apiMethod', apiModule)
-        if (apiModule) apiModuleMap.set(modulePath, apiModule)
-      } catch (error) {
-        console.log(`import ${modulePath} error \r\n`, error)
-        taskList.push({ error: `module error`, fullMethodName, typeName })
-      }
-    }
-
-    const apiMethod = isStatic ?
-      apiModule?.[className][methodName]
-      : apiModule?.[className].prototype[methodName]
-    if (apiMethod && typeof apiMethod === 'function') {
-      try {
-        // console.log(`🔍 Calling ${fullMethodName} with args:`, args);
-        const result = apiMethod.apply(apiModule, args)
-        const data = await Promise.resolve(result)
-        taskList.push({ data, typeName, fullMethodName })
-      } catch (error) {
-        console.error(`❌ ${fullMethodName} execute error:`, error)
-        taskList.push({ error, fullMethodName, typeName })
-      }
-    } else {
-      console.error(`❌ 无法获取 ${fullMethodName} 方法， 或不是可调用方法 `)
-      taskList.push({
-        error: `method error`, fullMethodName, typeName
-      })
-    }
-  }
-
-
-
-
-  return taskList
-
+/**
+ * 引入包含标记的方法的模块，触发装饰器执行，记录执行结果
+ * @param modulePathSet 
+ * @returns 
+ */
+async function importApiModule<T extends string>(modulePathSet: Set<T>) {
+  modulePathSet.forEach(modulePath => import(pathToFileURL(modulePath).href))
 }
 
 
@@ -165,11 +87,14 @@ function createDeclarationFile(successList: ExecuteApiMethodResult[]) {
 async function main() {
   try {
     console.log('🚀 开始生成API类型...');
-    const apiMethodsInfo = getApiMethodsInfo();
-    if (apiMethodsInfo.length == 0) return console.warn('⚠️ 未找到需要转换的API,请检查api_dir 和 gen_type装饰器标注是否正确!')
-    const executeList = await executeApiMethods(apiMethodsInfo);
+    const modulePathSet = getModulePathSet();
+    if (modulePathSet.size == 0) return console.warn('⚠️ 未找到需要转换的API,请检查api_dir 和 gen_type装饰器标注是否正确!')
+    importApiModule(modulePathSet);
+    // executeState.addListener(executeState.TASKLIST_CLEAR, executeResultList=>{
+    // })
 
-    const { successList: executeSuccessList, errorList: executeErrorList } = formatResultList(executeList)
+    const executeResultList = await executeState.promise
+    const { successList: executeSuccessList, errorList: executeErrorList } = formatResultList(executeResultList)
     if (executeErrorList.length) {
       console.group('请求结果：')
       console.table({
