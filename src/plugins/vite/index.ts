@@ -1,18 +1,46 @@
 import type { Plugin } from 'vite';
+import { C_DECO_NAME, M_DECO_NAME } from '../../constant/index.ts';
 
-
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 /**
- * vite插件 ，用来打包时移除 gen_type_c,gen_type_m 等装饰器
+ * 去掉装饰器，用于在项目运行/构建时，gen-api-types的装饰器不会有任何副作用，影响到原来项目代码
+ * @param decorators 
  * @returns 
  */
 export function removeDecorators(decorators: string[]): Plugin {
+  const names = decorators.map(escapeRegExp).join('|');
+
+  const decoratorRegex = new RegExp(
+    `^[ \\t]*@(?:${names})(?:\\s*\\([^\\n]*\\))?[ \\t]*\\r?\\n?`,
+    'gm'
+  );
+
   return {
     name: 'removeDecorators',
+    enforce: 'pre',
+
     transform(code, id) {
+      if (!/\.(ts|tsx)(\?.*)?$/.test(id)) {
+        return;
+      }
 
+      const transformedCode = code.replace(decoratorRegex, '');
 
-      return code
+      if (transformedCode === code) {
+        return;
+      }
+
+      return {
+        code: transformedCode,
+        map: null
+      };
     }
-  }
+  };
 }
 
+export function removeGatDecorators() {
+  const decorators = [M_DECO_NAME, C_DECO_NAME]
+  return removeDecorators(decorators)
+}
