@@ -61,7 +61,7 @@ export const { positionals, values: { project_root, output_file, output_dir, ts_
 
 if (help) {
   console.log(`
-  gen-api-types [options] [positionals
+  gen-api-types [options] [positionals]
 
   Options:
     -h, --help                  输出帮助信息

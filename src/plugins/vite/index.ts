@@ -13,7 +13,7 @@ export function removeDecorators(decorators: string[]): Plugin {
   const names = decorators.map(escapeRegExp).join('|');
 
   const decoratorRegex = new RegExp(
-    `^[ \\t]*@(?:${names})(?:\\s*\\([^\\n]*\\))?[ \\t]*\\r?\\n?`,
+    `^[ \\t]*@(?:${names})(?:\\s*\\([\\s\\S]*?\\))?[ \\t]*\\r?\\n?`,
     'gm'
   );
 

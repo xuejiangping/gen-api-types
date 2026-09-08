@@ -19,3 +19,29 @@ export function promiseWithResolvers<T>() {
     promise, resolve, reject
   }
 }
+
+export async function executeApiMethod<T>({
+  method,
+  timeout = 10 * 1000
+}: {
+  method: () => T | PromiseLike<T>
+  timeout?: number
+}): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`API execution timed out after ${timeout}ms`))
+    }, timeout)
+  })
+
+  try {
+    return await Promise.race([
+      Promise.resolve().then(method),
+      timeoutPromise
+    ])
+  } finally {
+    if (timer) clearTimeout(timer)
+  }
+}
+

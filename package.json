@@ -19,7 +19,8 @@
     "test": "vitest",
     "publish:patch": "npm version patch && git push --tags  && npm publish",
     "preinstall": "echo preinstall 。。。",
-    "postinstall": "echo postinstall 。。。"
+    "postinstall": "echo postinstall 。。。",
+    "gat": "gat -o test/output test/api "
   },
   "keywords": [
     "generate types",

@@ -10,8 +10,9 @@
 
 > 注意：
 >
-> 1. 由于需要使用到ts装饰器特性，而装饰器目前（ts 5.0）不支持直接标记普通函数，所以我们的接口必须以 **接口类+api方法** 的形式书写
-> 2. 该工具需要动态执行 ts 代码（import接口类，然后调用标记的api方法），因此会通过内置依赖的 `tsx` 执行工具运行，无需额外全局安装 `tsx`。
+> 1. 由于需要使用 TypeScript 方法装饰器，接口需要以 **API 类 + API 方法** 的形式书写。
+> 2. CLI 会动态导入并执行标记的 API 模块，因此通过项目内置的 `tsx` 运行，不需要全局安装 `tsx`。
+> 3. API 方法会在 CLI 进程中真实执行，请确保运行所需的环境变量、网络权限和鉴权配置已经准备好。
 
 #### 安装教程
 
@@ -23,14 +24,17 @@ npm install gen-api-types -D
 
 #### 使用说明
 
-##### 1. 标记接口类名和方法
+##### 1. 标记 API 类和方法
 
 ```ts
 import { gen_type_c, gen_type_m } from 'gen-api-types'
 
 @gen_type_c()
 export class TestApi {
-	@gen_type_m({ args: [100], typeName: 'XXX' })
+	@gen_type_m({
+		args: [100],
+		typeName: 'XXX',
+	})
 	static async getList(id: number): Promise<XXX> {
 		return asleep(1000).then(() => {
 			return { name: 'zs', id }
@@ -38,7 +42,7 @@ export class TestApi {
 	}
 
 	@gen_type_m()
-	static getWeather(): Promise<Response_TestApi_getWeather> {
+	getWeather(): Promise<Response_TestApi_getWeather> {
 		return fetch('http://t.weather.sojson.com/api/weather/city/101030100').then(r => r.json())
 	}
 }
@@ -46,14 +50,26 @@ export class TestApi {
 
 如上面代码所示:
 
-- `@gen_type_c`装饰器函数，用来标记接口类。因为工具会动态分析指定目录下的所有 ts 文件，标记接口类，可以帮助我们快速定位接口类
-- `@gen_type_m`装饰器函数标记需要转换的请求方法。它可以接收一个配置对象，包含两个字段。
-  1. `typeName: string` 接口返回类型名称，若不指定该字段，默认生成名称为： `Response_${类名}_${方法名}`
-  2. `args：any[] ` 方法参数列表,工具调用请求方法时，会将参数列表传入
+- `@gen_type_c()` 标记 API 类。
+- `@gen_type_m()` 标记需要执行并生成类型的方法。
+- `args: any[]` 是调用方法时传入的参数，支持静态方法和非静态方法。
+- `typeName: string` 是生成的类型名称；不指定时默认为 `Response_${类名}_${方法名}`。
+- 推荐使用导出的 `gen_type_c`、`gen_type_m` 别名。`GatDecorator` 是内部用于按常量名称注册装饰器的容器，不是业务代码必须使用的入口。
+
+装饰器参数可以跨多行书写：
+
+```ts
+@gen_type_m({
+	args: [100],
+	typeName: 'XXX'
+})
+```
 
 > 注意：
 
-若使用装饰器时ts报错: "运行时将使用 2 个自变量调用修饰器，但修饰器需要 3 个",请将tsconfig中`compilerOptions.experimentalDecorators`设置为`true`
+若使用装饰器时 TypeScript 报错“运行时将使用 2 个自变量调用修饰器，但修饰器需要 3 个”，请将 `tsconfig.json` 中的 `compilerOptions.experimentalDecorators` 设置为 `true`。
+
+CLI 默认会为单个 API 方法设置 5 秒执行超时。超时、同步异常或 Promise rejection 都会被记录为该方法的执行失败；超时只能停止等待，不能取消已经发出的底层请求。
 
 ##### 2. 执行命令
 
@@ -85,13 +101,13 @@ Options:
 }
 ```
 
+CLI 会扫描输入目录中的 `.ts` 文件，找到标记的类和方法后，动态导入包含这些方法的模块。模块导入时装饰器会执行 API 方法，所有方法完成后再生成声明文件。
+
 命令输出：
 
 ```shell
 🚀 开始生成API类型...
 sourceFilesGlob [ 'src\\**\\*.ts' ]
-📋 处理 TestApi.getList ...
-📋 处理 TestApi.getWeather ...
 请求结果：
   ┌────────────────┬──────────────────────────────────────┐
   │ (index)        │ Values                               │
@@ -147,6 +163,24 @@ npx gen-api-types --isExported -o output_dir -O output_file_name ./api_dir1 ./ap
 export type XXX = { name: string };
 export type Response_TestApi_getWeather = {...}
 ```
+
+##### 4. Vite 插件
+
+装饰器只用于生成类型，业务项目正常运行或构建时通常不需要执行这些装饰器。Vite 项目可以使用插件移除 `gen_type_c` 和 `gen_type_m`，避免装饰器在业务运行时产生副作用：
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite'
+import { removeGatDecorators } from 'gen-api-types'
+
+export default defineConfig({
+	plugins: [removeGatDecorators()],
+})
+```
+
+插件只处理 `.ts` 和 `.tsx` 文件，并支持单行或多行装饰器参数。推荐在业务代码中使用 `gen_type_c`、`gen_type_m` 别名；如果直接使用 `GatDecorator.gen_type_m()`，不会匹配插件当前的装饰器名称。
+
+Vite 插件只影响 Vite 的转换流程，不参与 CLI 的 API 执行流程。
 
 #### VS Code 插件
 

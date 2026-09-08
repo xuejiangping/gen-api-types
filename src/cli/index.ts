@@ -4,7 +4,7 @@
 import * as path from 'path';
 import { Project } from 'ts-morph';
 import { pathToFileURL } from 'url';
-import { isExported, output_dir, output_file, positionals } from '../argv';
+import { isExported, output_dir, output_file, positionals, ts_config_path } from '../argv';
 import { DECO_NAME_C, DECO_NAME_M } from '../constant';
 import { ExecuteApiMethodResult, executeState } from '../state';
 import { TypeTransformer } from '../transformer';
@@ -25,7 +25,9 @@ function getModulePathSet() {
   const modulePathSet: Set<string> = new Set()
   // 2. 使用ts-morph创建项目，便于解析源码
   // const project = new Project({ tsConfigFilePath: ts_config_path });
-  const project = new Project({});
+  const project = new Project({
+    tsConfigFilePath: ts_config_path
+  });
   project.addSourceFilesAtPaths(sourceFilesGlob);
   // console.log('project.getSourceFiles().length', project.getSourceFiles().length)
   // debugger
@@ -63,7 +65,10 @@ function getModulePathSet() {
  * @returns 
  */
 async function importApiModule<T extends string>(modulePathSet: Set<T>) {
-  modulePathSet.forEach(modulePath => import(pathToFileURL(modulePath).href))
+  return Promise.all(
+    Array.from(modulePathSet).map(modulePath => import(pathToFileURL(modulePath).href))
+  )
+
 }
 
 
@@ -85,11 +90,15 @@ function createDeclarationFile(successList: ExecuteApiMethodResult[]) {
 
 
 async function main() {
+  console.log('🚀 开始生成API类型...');
+  const modulePathSet = getModulePathSet();
+  if (modulePathSet.size == 0) {
+
+    console.error('⚠️ 未找到需要转换的API,请检查api_dir 和 gen_type装饰器标注是否正确!')
+    process.exit(1)
+  }
   try {
-    console.log('🚀 开始生成API类型...');
-    const modulePathSet = getModulePathSet();
-    if (modulePathSet.size == 0) return console.warn('⚠️ 未找到需要转换的API,请检查api_dir 和 gen_type装饰器标注是否正确!')
-    importApiModule(modulePathSet);
+    await importApiModule(modulePathSet);
     // executeState.addListener(executeState.TASKLIST_CLEAR, executeResultList=>{
     // })
 
@@ -118,7 +127,11 @@ async function main() {
     if (transformSuccessList.length) console.log('✅ API 类型生成完成：', out_put_target);
   } catch (error) {
     console.error('❌ 出错了', error)
+    process.exitCode = 1
   }
+
+
+
 
 }
 

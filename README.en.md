@@ -10,8 +10,9 @@ With this tool, we can mark request interface classes and methods through TypeSc
 
 > Note:
 >
-> 1. Because this tool uses TypeScript decorators, and decorators currently (TypeScript 5.0) do not support decorating plain functions directly, APIs must be written as **API classes + API methods**.
-> 2. This tool needs to dynamically execute TypeScript code (importing API classes and calling the marked API methods), so it runs through the bundled `tsx` dependency. No global `tsx` installation is required.
+> 1. Because this tool uses TypeScript method decorators, APIs must be written as **API classes + API methods**.
+> 2. The CLI dynamically imports and executes marked API modules through the project's bundled `tsx` runtime. No global `tsx` installation is required.
+> 3. API methods are executed for real in the CLI process. Make sure required environment variables, network access, and authentication are available.
 
 #### Installation
 
@@ -23,14 +24,17 @@ npm install gen-api-types -D
 
 #### Usage
 
-##### 1. Mark interface class names and methods
+##### 1. Mark API classes and methods
 
 ```ts
 import { gen_type_c, gen_type_m } from 'gen-api-types'
 
 @gen_type_c()
 export class TestApi {
-	@gen_type_m({ args: [100], typeName: 'XXX' })
+	@gen_type_m({
+		args: [100],
+		typeName: 'XXX',
+	})
 	static async getList(id: number): Promise<XXX> {
 		return asleep(1000).then(() => {
 			return { name: 'zs', id }
@@ -38,7 +42,7 @@ export class TestApi {
 	}
 
 	@gen_type_m()
-	static getWeather(): Promise<Response_TestApi_getWeather> {
+	getWeather(): Promise<Response_TestApi_getWeather> {
 		return fetch('http://t.weather.sojson.com/api/weather/city/101030100').then(r => r.json())
 	}
 }
@@ -46,14 +50,26 @@ export class TestApi {
 
 As shown in the code above:
 
-- `@gen_type_c` decorator function is used to mark interface classes. Since the tool dynamically analyzes all ts files in the specified directory, marking interface classes helps quickly locate them.
-- `@gen_type_m` decorator function marks the request methods that need to be converted. It can accept a configuration object with two fields:
-  1. `typeName: string` Interface return type name. If not specified, the default name will be: `Response_${ClassName}_${MethodName}`
-  2. `args: any[]` Method parameter list. The tool will pass this list when calling the request method.
+- `@gen_type_c()` marks an API class.
+- `@gen_type_m()` marks a method to execute and convert.
+- `args: any[]` contains the arguments passed to the method. Both static and non-static methods are supported.
+- `typeName: string` is the generated type name. If omitted, it defaults to `Response_${ClassName}_${MethodName}`.
+- Prefer the exported `gen_type_c` and `gen_type_m` aliases. `GatDecorator` is the internal container used for constant-based decorator names and is not required in business code.
+
+Decorator options may span multiple lines:
+
+```ts
+@gen_type_m({
+	args: [100],
+	typeName: 'XXX'
+})
+```
 
 > Note:
 
-If TypeScript reports the decorator error: "The runtime will invoke the decorator with 2 arguments, but the decorator expects 3", set `compilerOptions.experimentalDecorators` to `true` in tsconfig.
+If TypeScript reports the decorator error "The runtime will invoke the decorator with 2 arguments, but the decorator expects 3", set `compilerOptions.experimentalDecorators` to `true` in `tsconfig.json`.
+
+The CLI currently applies a 3-second execution timeout to each API method. Timeouts, synchronous exceptions, and rejected promises are reported as execution failures. A timeout stops waiting for the result but cannot cancel an underlying request that has already started.
 
 ##### 2. Execute command
 
@@ -85,13 +101,13 @@ You can also use it by configuring scripts in package.json:
 }
 ```
 
+The CLI scans `.ts` files in the input directories, finds marked classes and methods, and dynamically imports the modules containing them. The decorators execute the API methods during module import; the declaration file is generated after all marked methods finish.
+
 Command output:
 
 ```shell
 🚀 Start generating API types...
 sourceFilesGlob [ 'src\\**\\*.ts' ]
-📋 Processing TestApi.getList ...
-📋 Processing TestApi.getWeather ...
 Request results:
   ┌────────────────┬──────────────────────────────────────┐
   │ (index)        │ Values                               │
@@ -147,6 +163,24 @@ Generated output example:
 export type XXX = { name: string };
 export type Response_TestApi_getWeather = {...}
 ```
+
+##### 4. Vite plugin
+
+Decorators are needed for type generation, but they normally should not execute when the business application runs or builds. In a Vite project, use the plugin to remove `gen_type_c` and `gen_type_m` from the transformed business code:
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite'
+import { removeGatDecorators } from 'gen-api-types'
+
+export default defineConfig({
+	plugins: [removeGatDecorators()],
+})
+```
+
+The plugin processes `.ts` and `.tsx` files and supports single-line and multi-line decorator options. Use the `gen_type_c` and `gen_type_m` aliases in business code; direct `GatDecorator.gen_type_m()` calls do not match the plugin's current decorator names.
+
+The Vite plugin only affects Vite's transform pipeline. It is not involved when the CLI imports and executes API modules.
 
 #### VS Code Extension
 

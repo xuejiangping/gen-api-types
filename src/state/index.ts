@@ -1,5 +1,5 @@
 import EventEmitter from "events"
-import { promiseWithResolvers } from "../utils"
+import { promiseWithResolvers } from "../utils/index.ts"
 
 export type ExecuteApiMethodResult = {
   data?: any, typeName: string, fullMethodName: string, error?: any

@@ -1,14 +1,14 @@
 
-
-import { gen_type_c, gen_type_m } from "../../src";
+import { gen_type_c, gen_type_m } from "gen-api-types";
 
 const asleep = (t = 1000) => new Promise(r => setTimeout(r, t))
+const aa = '99'
 @gen_type_c()
 export class SampleApi {
-
-
-
-  @gen_type_m({ args: ['1000'], typeName: "GetListResult" })
+  @gen_type_m({
+    args: [aa],
+    typeName: "GetListResult"
+  })
   static async getList(id: number) {
 
     return asleep(1000).then(() => {
@@ -22,4 +22,4 @@ export class SampleApi {
   }
 }
 
-console.log('加载 test/api/index.ts')
+// console.log('加载 test/api/index.ts')

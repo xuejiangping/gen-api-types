@@ -1,17 +1,11 @@
 
-
-
-
-import { gen_type_c, gen_type_m } from "../../src";
-import { Response_SampleApi_getWeather } from "../output";
+import { GatDecorator } from "gen-api-types";
 
 const asleep = (t = 1000) => new Promise(r => setTimeout(r, t))
-@gen_type_c()
-export class SampleApi {
-
-
-
-  @gen_type_m({ args: ['1000'], typeName: "GetListResult2" })
+const aa = 123
+@GatDecorator.gen_type_c()
+export class SampleApi2 {
+  @GatDecorator.gen_type_m({ args: [aa], typeName: "GetListResult2" })
   static async getList2(id: number) {
 
     return asleep(1000).then(() => {
@@ -19,7 +13,7 @@ export class SampleApi {
     })
   }
 
-  @gen_type_m()
+  @GatDecorator.gen_type_m()
   getWeather2(): Promise<Response_SampleApi_getWeather> {
     return fetch('http://t.weather.sojson.com/api/weather/city/101030100').then(r => r.json())
   }

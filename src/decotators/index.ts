@@ -1,7 +1,8 @@
 // import 'reflect-metadata';
 
-import { DECO_NAME_C, DECO_NAME_M } from "../constant";
-import { executeState } from "../state";
+import { DECO_NAME_C, DECO_NAME_M } from "../constant/index.ts";
+import { executeState } from "../state/index.ts";
+import { executeApiMethod } from "../utils/index.ts";
 
 // 定义一个唯一的metadata key
 
@@ -10,33 +11,9 @@ export interface GenTypeOptions {
   args?: any[];
   typeName?: string;
 }
-/**
- * 标记方法
- */
-export function gen_type_m({ args = [], typeName }: GenTypeOptions = {}) {
-  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-
-    console.log('propertyKey', propertyKey)
-    // 只存储元数据，不执行任何逻辑
-    // Reflect.defineMetadata(
-    //   GEN_TYPE_METADATA_KEY,
-    //   { args, typeName },
-    //   target,
-    //   propertyKey
-    // );
-  };
-}
 
 
-/**
- * 标记类
- */
-export function gen_type_c() {
-  return function <T>(target: T) {
-  };
-}
-
-
+const EXEC_TIMEOUT = 5_000
 export class GatDecorator {
   static [DECO_NAME_C]() {
     return function <T>(target: T) {
@@ -55,8 +32,11 @@ export class GatDecorator {
         try {
           const apiMethod = descriptor.value as Function
           // console.log(`🔍 Calling ${fullMethodName} with args:`, args);
-          const result = apiMethod.apply(target, args)
-          const data = await Promise.resolve(result)
+
+          const data = await executeApiMethod({
+            timeout: EXEC_TIMEOUT,
+            method: () => apiMethod.apply(target, args)
+          })
 
           resultInfo = { data, typeName, fullMethodName }
         } catch (error) {
@@ -70,3 +50,6 @@ export class GatDecorator {
     };
   }
 }
+
+export const gen_type_c = GatDecorator[DECO_NAME_C]
+export const gen_type_m = GatDecorator[DECO_NAME_M]
