@@ -90,6 +90,7 @@ type ExecuteApiMethodResult = {
   data?: any, typeName: string, fullMethodName: string, error?: any
 }
 async function executeApiMethods(apiMethodsInfo: ApiMethodInfo[]): Promise<ExecuteApiMethodResult[]> {
+  // 缓存apiModule
   const apiModuleMap = new Map<string, any>();
   // debugger
   const taskList: ExecuteApiMethodResult[] = []
@@ -165,7 +166,7 @@ async function main() {
   try {
     console.log('🚀 开始生成API类型...');
     const apiMethodsInfo = getApiMethodsInfo();
-    if (apiMethodsInfo.length == 0) return console.warn('⚠️ 未找到需要转换的API,请检查api_dir 和 get_type装饰器标注是否正确!')
+    if (apiMethodsInfo.length == 0) return console.warn('⚠️ 未找到需要转换的API,请检查api_dir 和 gen_type装饰器标注是否正确!')
     const executeList = await executeApiMethods(apiMethodsInfo);
 
     const { successList: executeSuccessList, errorList: executeErrorList } = formatResultList(executeList)
